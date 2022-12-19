@@ -63,3 +63,41 @@ class ValueStateConfigurationData {
   @override
   int get hashCode => Object.hash(onNoValue, onWaiting, onError, onDefault);
 }
+
+class ValueStateConfiguration extends StatelessWidget {
+  const ValueStateConfiguration(
+      {super.key, required this.theme, required this.child});
+
+  final ValueStateConfigurationData theme;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeInherited = maybeOf(context);
+
+    return _ValueStateConfiguration(
+        theme: theme.merge(themeInherited), child: child);
+  }
+
+  static ValueStateConfigurationData? maybeOf(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<_ValueStateConfiguration>()
+      ?.theme;
+
+  static ValueStateConfigurationData of(BuildContext context) {
+    final ValueStateConfigurationData? configuration = maybeOf(context);
+
+    assert(configuration != null, 'No ValueStateTheme found in context');
+
+    return configuration!;
+  }
+}
+
+class _ValueStateConfiguration extends InheritedWidget {
+  const _ValueStateConfiguration({required this.theme, required super.child});
+
+  final ValueStateConfigurationData theme;
+
+  @override
+  bool updateShouldNotify(covariant _ValueStateConfiguration oldWidget) =>
+      theme != oldWidget.theme;
+}

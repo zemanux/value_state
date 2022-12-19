@@ -25,16 +25,15 @@ extension ValueStateBuilderExtension<T> on BaseState<T> {
     OnValueStateWrapperForTheme<T>? wrapper,
     bool valueMixedWithError = false,
   }) =>
-      _ValueStateBuilder<T>(
-        state: this,
-        onWithValue: onWithValue,
-        onWaiting: onWaiting,
-        onNoValue: onNoValue,
-        onError: onError,
+      accept(_ValueStateBuilderVisitor<T>(
         onDefault: onDefault,
-        wrapper: wrapper,
+        onError: onError,
+        onWithValue: onWithValue,
+        onNoValue: onNoValue,
+        onWaiting: onWaiting,
         valueMixedWithError: valueMixedWithError,
-      );
+        wrapper: wrapper,
+      ));
 
   Widget buildError() => Builder(
         builder: (context) {
@@ -52,47 +51,8 @@ extension ValueStateBuilderExtension<T> on BaseState<T> {
       );
 }
 
-class ValueStateConfiguration extends StatelessWidget {
-  const ValueStateConfiguration(
-      {super.key, required this.theme, required this.child});
-
-  final ValueStateConfigurationData theme;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final themeInherited = maybeOf(context);
-
-    return _ValueStateConfiguration(
-        theme: theme.merge(themeInherited), child: child);
-  }
-
-  static ValueStateConfigurationData? maybeOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<_ValueStateConfiguration>()
-      ?.theme;
-
-  static ValueStateConfigurationData of(BuildContext context) {
-    final ValueStateConfigurationData? configuration = maybeOf(context);
-
-    assert(configuration != null, 'No ValueStateTheme found in context');
-
-    return configuration!;
-  }
-}
-
-class _ValueStateConfiguration extends InheritedWidget {
-  const _ValueStateConfiguration({required this.theme, required super.child});
-
-  final ValueStateConfigurationData theme;
-
-  @override
-  bool updateShouldNotify(covariant _ValueStateConfiguration oldWidget) =>
-      theme != oldWidget.theme;
-}
-
-class _ValueStateBuilder<T> extends StatelessWidget {
-  const _ValueStateBuilder({
-    required this.state,
+class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
+  const _ValueStateBuilderVisitor({
     required this.onWithValue,
     required this.onWaiting,
     required this.onNoValue,
@@ -101,8 +61,6 @@ class _ValueStateBuilder<T> extends StatelessWidget {
     required this.wrapper,
     required this.valueMixedWithError,
   });
-
-  final BaseState<T> state;
 
   final OnValueStateWithValue<T> onWithValue;
 
@@ -115,49 +73,94 @@ class _ValueStateBuilder<T> extends StatelessWidget {
 
   final bool valueMixedWithError;
 
+  Widget _builder(
+    BaseState<T> state,
+    Widget? Function(BuildContext context,
+            ValueStateConfigurationData? valueStateConfiguration)
+        builder,
+  ) =>
+      _StateBuilder(
+          state: state,
+          builder: builder,
+          onDefault: onDefault,
+          wrapper: wrapper);
+
   @override
-  Widget build(BuildContext context) {
-    final localState = state;
+  Widget visitInitState(InitState<T> state) => _visitWaitingState(state);
 
-    final builder = wrapper ?? _defaultWrapper;
-    final valueStateTheme = ValueStateConfiguration.maybeOf(context);
-    final onDefault =
-        this.onDefault ?? valueStateTheme?.onDefault ?? _onDefault<T>;
+  @override
+  Widget visitPendingState(PendingState<T> state) => _visitWaitingState(state);
 
-    final onError = this.onError ?? valueStateTheme?.onError;
+  Widget _visitWaitingState(WaitingState<T> state) =>
+      _builder(state, (context, valueStateConfiguration) {
+        final onWaiting = this.onWaiting ?? valueStateConfiguration?.onWaiting;
 
-    Widget? child;
-    if (localState is WaitingState<T>) {
-      final onWaiting = this.onWaiting ?? valueStateTheme?.onWaiting;
+        return onWaiting?.call(context, state);
+      });
 
-      if (onWaiting != null) {
-        child = onWaiting(context, localState);
-      }
-    } else if (!valueMixedWithError && localState is ErrorState<T>) {
-      if (onError != null) {
-        child = onError(context, localState);
-      }
-    } else if (localState is WithValueState<T>) {
-      _stateOnErrorExpando[state] = onError as OnValueStateError<dynamic>?;
+  @override
+  Widget visitNoValueState(NoValueState<T> state) =>
+      _builder(state, (context, valueStateConfiguration) {
+        final onNoValue = this.onNoValue ?? valueStateConfiguration?.onNoValue;
 
-      child = onWithValue(context, localState);
-    } else if (localState is NoValueState<T>) {
-      final onNoValue = this.onNoValue ?? valueStateTheme?.onNoValue;
+        return onNoValue?.call(context, state);
+      });
 
-      if (onNoValue != null) {
-        child = onNoValue(context, localState);
-      }
-    } else if (localState is ErrorState<T>) {
-      if (onError != null) {
-        child = onError(context, localState);
-      }
+  @override
+  Widget visitValueState(ValueState<T> state) => _visitWithValueState(state);
+
+  @override
+  Widget visitErrorState(ErrorState<T> state) {
+    if (valueMixedWithError && state is ErrorWithPreviousValue<T>) {
+      return _visitWithValueState(state);
     }
-    child ??= onDefault(context, localState);
 
-    return builder(context, localState, child);
+    return _builder(state, (context, valueStateConfiguration) {
+      final onError = this.onError ?? valueStateConfiguration?.onError;
+
+      return onError?.call(context, state);
+    });
   }
 
-  Widget _defaultWrapper(
-          BuildContext context, BaseState<T> state, Widget child) =>
-      child;
+  Widget _visitWithValueState(WithValueState<T> state) =>
+      _builder(state, (context, valueStateConfiguration) {
+        final onError = this.onError ?? valueStateConfiguration?.onError;
+        if (onError != null) {
+          _stateOnErrorExpando[state] = onError as OnValueStateError<dynamic>;
+        }
+
+        return onWithValue(context, state);
+      });
+}
+
+class _StateBuilder<T> extends StatelessWidget {
+  const _StateBuilder({
+    required this.state,
+    required this.builder,
+    required this.onDefault,
+    required this.wrapper,
+  });
+
+  final BaseState<T> state;
+  final Widget? Function(BuildContext context,
+      ValueStateConfigurationData? valueStateConfiguration) builder;
+  final OnValueStateDefault<T>? onDefault;
+  final OnValueStateWrapperForTheme<T>? wrapper;
+
+  @override
+  Widget build(BuildContext context) {
+    final valueStateConfiguration = ValueStateConfiguration.maybeOf(context);
+    Widget? child = builder(context, valueStateConfiguration);
+
+    if (child == null) {
+      final localOnDefault =
+          onDefault ?? valueStateConfiguration?.onDefault ?? _onDefault<T>;
+      child = localOnDefault(context, state);
+    }
+
+    final wrapBuilder = wrapper ??
+        (BuildContext context, BaseState<T> state, Widget child) => child;
+
+    return wrapBuilder(context, state, child);
+  }
 }

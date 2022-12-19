@@ -126,9 +126,7 @@ class _TestConfigurationWidgetState<T extends BaseState<int>>
 void main() {
   group('without configuration', () {
     testWidgets('buildWidget with ${ValueState<int>}', (tester) async {
-      await tester.pumpWidget(const _TestWidget(
-        state: ValueState(1),
-      ));
+      await tester.pumpWidget(const _TestWidget(state: ValueState(1)));
 
       expect(find.byKey(_buildWidgetKey), findsOneWidget);
       expect(find.byType(_defaultWidgetType), findsOneWidget);
