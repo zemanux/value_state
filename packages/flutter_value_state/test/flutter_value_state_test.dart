@@ -100,16 +100,16 @@ class _TestConfigurationWidgetState<T extends BaseState<int>>
   @override
   Widget build(BuildContext context) {
     _valueStateConfigurationData = ValueStateConfigurationData(
-      onDefault: (context, state) =>
+      builderDefault: (context, state) =>
           const SizedBox.shrink(key: _defaultWidgetKey),
-      onError: _onError,
-      onNoValue: (context, state) =>
+      builderError: _onError,
+      builderNoValue: (context, state) =>
           const SizedBox.shrink(key: _noValueWidgetKey),
-      onWaiting: (context, state) =>
+      builderWaiting: (context, state) =>
           const SizedBox.shrink(key: _waitingWidgetKey),
     );
     return ValueStateConfiguration(
-        theme: _valueStateConfigurationData,
+        configuration: _valueStateConfigurationData,
         child: _TestWidget<T>(
           state: widget.state,
           valueMixedWithError: widget.valueMixedWithError,
@@ -153,7 +153,7 @@ void main() {
           (tester) async {
         await tester.pumpWidget(
           ValueStateConfiguration(
-              theme: const ValueStateConfigurationData(),
+              configuration: const ValueStateConfigurationData(),
               child: _TestWidget(state: state)),
         );
 

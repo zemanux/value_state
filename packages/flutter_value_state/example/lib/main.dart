@@ -24,15 +24,15 @@ class MyApp extends StatelessWidget {
           builder: (context, child) => child == null
               ? const SizedBox.shrink()
               : ValueStateConfiguration(
-                  theme: ValueStateConfigurationData(
-                    onWaiting: (context, state) =>
+                  configuration: ValueStateConfigurationData(
+                    builderWaiting: (context, state) =>
                         const Center(child: CircularProgressIndicator()),
-                    onError: (context, state) => Center(
+                    builderError: (context, state) => Center(
                       child: Text('Expected error.',
                           style:
                               TextStyle(color: Theme.of(context).errorColor)),
                     ),
-                    onNoValue: (context, state) =>
+                    builderNoValue: (context, state) =>
                         const Center(child: Text('No value.')),
                   ),
                   child: child,

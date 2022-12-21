@@ -1,6 +1,6 @@
 # flutter_state_value_examples
 
-A basic example of value cubit usage.
+A basic example of flutter value state usage.
 
 ## Getting Started
 

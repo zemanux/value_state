@@ -15,38 +15,53 @@ typedef OnValueStateDefault<T> = Widget Function(
 typedef OnValueStateWrapperForTheme<T> = Widget Function(
     BuildContext context, BaseState<T> state, Widget child);
 
+/// Define default behavior for the states [WaitingState], [NoValueState], [ErrorState].
+/// [builderDefault] can be used when none of this callback is mentionned.
 class ValueStateConfigurationData {
   const ValueStateConfigurationData(
-      {this.onWaiting, this.onNoValue, this.onError, this.onDefault});
+      {this.builderWaiting,
+      this.builderNoValue,
+      this.builderError,
+      this.builderDefault});
 
-  final OnValueStateWaiting? onWaiting;
+  /// Builder for [WaitingState].
+  final OnValueStateWaiting? builderWaiting;
 
-  final OnValueStateNoValue? onNoValue;
-  final OnValueStateError? onError;
+  /// Builder for [NoValueState].
+  final OnValueStateNoValue? builderNoValue;
 
-  final OnValueStateDefault? onDefault;
+  /// Builder for [ErrorState].
+  final OnValueStateError? builderError;
 
+  /// Fallback builder when one of the state builder is empty.
+  final OnValueStateDefault? builderDefault;
+
+  /// Creates a copy of this [ValueStateConfigurationData] but with the given
+  /// fields replaced with the new values.
   ValueStateConfigurationData copyWith({
-    OnValueStateWaiting? onWaiting,
-    OnValueStateNoValue? onNoValue,
-    OnValueStateError? onError,
-    OnValueStateDefault? onDefault,
+    OnValueStateWaiting? builderWaiting,
+    OnValueStateNoValue? builderNoValue,
+    OnValueStateError? builderError,
+    OnValueStateDefault? builderDefault,
   }) =>
       ValueStateConfigurationData(
-        onWaiting: onWaiting ?? this.onWaiting,
-        onNoValue: onNoValue ?? this.onNoValue,
-        onError: onError ?? this.onError,
-        onDefault: onDefault ?? this.onDefault,
+        builderWaiting: builderWaiting ?? builderWaiting,
+        builderNoValue: builderNoValue ?? builderNoValue,
+        builderError: builderError ?? builderError,
+        builderDefault: builderDefault ?? builderDefault,
       );
 
-  ValueStateConfigurationData merge(ValueStateConfigurationData? theme) {
-    final baseTheme = theme ?? const ValueStateConfigurationData();
+  /// Creates a new [ValueStateConfigurationData] where each parameter
+  /// from this object has been merged with the matching attribute.
+  ValueStateConfigurationData merge(
+      ValueStateConfigurationData? configuration) {
+    final baseTheme = configuration ?? const ValueStateConfigurationData();
 
     return baseTheme.copyWith(
-      onWaiting: onWaiting,
-      onNoValue: onNoValue,
-      onError: onError,
-      onDefault: onDefault,
+      builderWaiting: builderWaiting,
+      builderNoValue: builderNoValue,
+      builderError: builderError,
+      builderDefault: builderDefault,
     );
   }
 
@@ -55,28 +70,38 @@ class ValueStateConfigurationData {
       identical(this, other) ||
       runtimeType == other.runtimeType &&
           other is ValueStateConfigurationData &&
-          onWaiting == other.onWaiting &&
-          onNoValue == other.onNoValue &&
-          onError == other.onError &&
-          onDefault == other.onDefault;
+          builderWaiting == other.builderWaiting &&
+          builderNoValue == other.builderNoValue &&
+          builderError == other.builderError &&
+          builderDefault == other.builderDefault;
 
   @override
-  int get hashCode => Object.hash(onNoValue, onWaiting, onError, onDefault);
+  int get hashCode =>
+      Object.hash(builderNoValue, builderWaiting, builderError, builderDefault);
 }
 
+/// Provide a [ValueStateConfigurationData] for all inherited widget to define
+/// default behavior for any state of [BaseState] except [ValueState].
+///
+/// If this configuration is in a subtree of another [ValueStateConfiguration],
+/// the configuration will be merged with the parent one.
 class ValueStateConfiguration extends StatelessWidget {
-  const ValueStateConfiguration(
-      {super.key, required this.theme, required this.child});
+  const ValueStateConfiguration({
+    super.key,
+    required this.configuration,
+    required this.child,
+  });
 
-  final ValueStateConfigurationData theme;
+  /// The default to configuration.
+  final ValueStateConfigurationData configuration;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final themeInherited = maybeOf(context);
+    final inheritedConfiguration = maybeOf(context);
 
     return _ValueStateConfiguration(
-        theme: theme.merge(themeInherited), child: child);
+        theme: configuration.merge(inheritedConfiguration), child: child);
   }
 
   static ValueStateConfigurationData? maybeOf(BuildContext context) => context

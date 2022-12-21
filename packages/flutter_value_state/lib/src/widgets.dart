@@ -75,7 +75,8 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
 
   Widget _visitWaitingState(WaitingState<T> state) =>
       _builder(state, (context, valueStateConfiguration) {
-        final onWaiting = this.onWaiting ?? valueStateConfiguration?.onWaiting;
+        final onWaiting =
+            this.onWaiting ?? valueStateConfiguration?.builderWaiting;
 
         return onWaiting?.call(context, state);
       });
@@ -83,7 +84,8 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
   @override
   Widget visitNoValueState(NoValueState<T> state) =>
       _builder(state, (context, valueStateConfiguration) {
-        final onNoValue = this.onNoValue ?? valueStateConfiguration?.onNoValue;
+        final onNoValue =
+            this.onNoValue ?? valueStateConfiguration?.builderNoValue;
 
         return onNoValue?.call(context, state);
       });
@@ -98,7 +100,7 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
     }
 
     return _builder(state, (context, valueStateConfiguration) {
-      final onError = this.onError ?? valueStateConfiguration?.onError;
+      final onError = this.onError ?? valueStateConfiguration?.builderError;
 
       return onError?.call(context, state);
     });
@@ -106,7 +108,7 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
 
   Widget _visitWithValueState(WithValueState<T> state) =>
       _builder(state, (context, valueStateConfiguration) {
-        final onError = this.onError ?? valueStateConfiguration?.onError;
+        final onError = this.onError ?? valueStateConfiguration?.builderError;
         Widget? error;
 
         if (state is ErrorWithPreviousValue<T>) {
@@ -138,7 +140,7 @@ class _StateBuilder<T> extends StatelessWidget {
 
     if (child == null) {
       final localOnDefault =
-          onDefault ?? valueStateConfiguration?.onDefault ?? _onDefault<T>;
+          onDefault ?? valueStateConfiguration?.builderDefault ?? _onDefault<T>;
       child = localOnDefault(context, state);
     }
 
