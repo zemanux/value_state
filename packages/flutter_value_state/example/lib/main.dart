@@ -58,13 +58,13 @@ class MyHomePage extends StatelessWidget {
           style: const TextStyle(fontSize: 24),
           textAlign: TextAlign.center,
           child: state.buildWidget(
-              (context, state) => Column(
+              (context, state, error) => Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (state.refreshing) const LinearProgressIndicator(),
                         const Spacer(),
-                        if (state.hasError) ...[
-                          state.buildError(),
+                        if (error != null) ...[
+                          error,
                           const Text('Previous counter value :')
                         ] else
                           const Text('Actual counter value :'),

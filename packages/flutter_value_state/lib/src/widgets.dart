@@ -3,9 +3,6 @@ import 'package:value_state/value_state.dart';
 
 import 'configuration.dart';
 
-final _stateOnErrorExpando =
-    Expando<OnValueStateError>('ValueState.buildError');
-
 Widget _onDefault<T>(BuildContext context, BaseState<T> state) =>
     const SizedBox.shrink();
 
@@ -34,21 +31,6 @@ extension ValueStateBuilderExtension<T> on BaseState<T> {
         valueMixedWithError: valueMixedWithError,
         wrapper: wrapper,
       ));
-
-  Widget buildError() => Builder(
-        builder: (context) {
-          final state = this;
-          final onDefault =
-              ValueStateConfiguration.maybeOf(context)?.onDefault ?? _onDefault;
-
-          if (state is! ErrorState<T>) return onDefault(context, state);
-          final onError = _stateOnErrorExpando[state];
-
-          if (onError == null) return onDefault(context, state);
-
-          return onError(context, state);
-        },
-      );
 }
 
 class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
@@ -125,11 +107,13 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
   Widget _visitWithValueState(WithValueState<T> state) =>
       _builder(state, (context, valueStateConfiguration) {
         final onError = this.onError ?? valueStateConfiguration?.onError;
-        if (onError != null) {
-          _stateOnErrorExpando[state] = onError as OnValueStateError<dynamic>;
+        Widget? error;
+
+        if (state is ErrorWithPreviousValue<T>) {
+          error = onError?.call(context, state);
         }
 
-        return onWithValue(context, state);
+        return onWithValue(context, state, error);
       });
 }
 

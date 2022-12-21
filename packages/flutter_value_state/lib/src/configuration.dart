@@ -5,7 +5,7 @@ typedef OnValueStateWaiting<T> = Widget Function(
     BuildContext context, WaitingState<T> state);
 
 typedef OnValueStateWithValue<T> = Widget Function(
-    BuildContext context, WithValueState<T> state);
+    BuildContext context, WithValueState<T> state, Widget? error);
 typedef OnValueStateNoValue<T> = Widget Function(
     BuildContext context, NoValueState<T> state);
 typedef OnValueStateError<T> = Widget Function(

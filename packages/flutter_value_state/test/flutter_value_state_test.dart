@@ -38,10 +38,10 @@ class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return state.buildWidget(
-      (context, state) {
+      (context, state, error) {
         return Column(
           children: [
-            if (state.hasError) state.buildError(),
+            if (error != null) error,
             child ?? const SizedBox.shrink(key: _buildWidgetKey),
           ],
         );
