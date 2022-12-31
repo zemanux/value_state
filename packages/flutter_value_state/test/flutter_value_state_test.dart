@@ -33,7 +33,7 @@ class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
   final OnValueStateNoValue<dynamic>? onNoValue;
   final OnValueStateError<dynamic>? onError;
   final OnValueStateDefault<dynamic>? onDefault;
-  final OnValueStateWrapperForTheme<dynamic>? wrapper;
+  final OnValueStateWrapperForConfiguration<dynamic>? wrapper;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class _TestConfigurationWidget<T extends BaseState<int>>
   final OnValueStateNoValue<dynamic>? onNoValue;
   final OnValueStateError<dynamic>? onError;
   final OnValueStateDefault<dynamic>? onDefault;
-  final OnValueStateWrapperForTheme<dynamic>? wrapper;
+  final OnValueStateWrapperForConfiguration<dynamic>? wrapper;
 
   @override
   State<_TestConfigurationWidget<T>> createState() =>

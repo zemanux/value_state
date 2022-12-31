@@ -19,7 +19,7 @@ extension ValueStateBuilderExtension<T> on BaseState<T> {
     OnValueStateNoValue<T>? onNoValue,
     OnValueStateError<T>? onError,
     OnValueStateDefault<T>? onDefault,
-    OnValueStateWrapperForTheme<T>? wrapper,
+    OnValueStateWrapperForConfiguration<T>? wrapper,
     bool valueMixedWithError = false,
   }) =>
       accept(_ValueStateBuilderVisitor<T>(
@@ -51,7 +51,7 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
   final OnValueStateNoValue<T>? onNoValue;
   final OnValueStateError<T>? onError;
   final OnValueStateDefault<T>? onDefault;
-  final OnValueStateWrapperForTheme<T>? wrapper;
+  final OnValueStateWrapperForConfiguration<T>? wrapper;
 
   final bool valueMixedWithError;
 
@@ -131,7 +131,7 @@ class _StateBuilder<T> extends StatelessWidget {
   final Widget? Function(BuildContext context,
       ValueStateConfigurationData? valueStateConfiguration) builder;
   final OnValueStateDefault<T>? onDefault;
-  final OnValueStateWrapperForTheme<T>? wrapper;
+  final OnValueStateWrapperForConfiguration<T>? wrapper;
 
   @override
   Widget build(BuildContext context) {
@@ -144,9 +144,12 @@ class _StateBuilder<T> extends StatelessWidget {
       child = localOnDefault(context, state);
     }
 
-    final wrapBuilder = wrapper ??
-        (BuildContext context, BaseState<T> state, Widget child) => child;
+    final wrapBuilder = wrapper ?? _defaultWrapper;
 
     return wrapBuilder(context, state, child);
   }
+
+  Widget _defaultWrapper(
+          BuildContext context, BaseState<T> state, Widget child) =>
+      child;
 }

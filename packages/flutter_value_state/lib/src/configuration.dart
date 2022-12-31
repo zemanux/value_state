@@ -12,7 +12,7 @@ typedef OnValueStateError<T> = Widget Function(
     BuildContext context, ErrorState<T> state);
 typedef OnValueStateDefault<T> = Widget Function(
     BuildContext context, BaseState<T> state);
-typedef OnValueStateWrapperForTheme<T> = Widget Function(
+typedef OnValueStateWrapperForConfiguration<T> = Widget Function(
     BuildContext context, BaseState<T> state, Widget child);
 
 /// Define default behavior for the states [WaitingState], [NoValueState], [ErrorState].
@@ -45,19 +45,20 @@ class ValueStateConfigurationData {
     OnValueStateDefault? builderDefault,
   }) =>
       ValueStateConfigurationData(
-        builderWaiting: builderWaiting ?? builderWaiting,
-        builderNoValue: builderNoValue ?? builderNoValue,
-        builderError: builderError ?? builderError,
-        builderDefault: builderDefault ?? builderDefault,
+        builderWaiting: builderWaiting ?? this.builderWaiting,
+        builderNoValue: builderNoValue ?? this.builderNoValue,
+        builderError: builderError ?? this.builderError,
+        builderDefault: builderDefault ?? this.builderDefault,
       );
 
   /// Creates a new [ValueStateConfigurationData] where each parameter
   /// from this object has been merged with the matching attribute.
   ValueStateConfigurationData merge(
       ValueStateConfigurationData? configuration) {
-    final baseTheme = configuration ?? const ValueStateConfigurationData();
+    final baseConfiguration =
+        configuration ?? const ValueStateConfigurationData();
 
-    return baseTheme.copyWith(
+    return baseConfiguration.copyWith(
       builderWaiting: builderWaiting,
       builderNoValue: builderNoValue,
       builderError: builderError,
@@ -101,28 +102,31 @@ class ValueStateConfiguration extends StatelessWidget {
     final inheritedConfiguration = maybeOf(context);
 
     return _ValueStateConfiguration(
-        theme: configuration.merge(inheritedConfiguration), child: child);
+        configuration: configuration.merge(inheritedConfiguration),
+        child: child);
   }
 
   static ValueStateConfigurationData? maybeOf(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<_ValueStateConfiguration>()
-      ?.theme;
+      ?.configuration;
 
   static ValueStateConfigurationData of(BuildContext context) {
     final ValueStateConfigurationData? configuration = maybeOf(context);
 
-    assert(configuration != null, 'No ValueStateTheme found in context');
+    assert(
+        configuration != null, 'No $ValueStateConfiguration found in context');
 
     return configuration!;
   }
 }
 
 class _ValueStateConfiguration extends InheritedWidget {
-  const _ValueStateConfiguration({required this.theme, required super.child});
+  const _ValueStateConfiguration(
+      {required this.configuration, required super.child});
 
-  final ValueStateConfigurationData theme;
+  final ValueStateConfigurationData configuration;
 
   @override
   bool updateShouldNotify(covariant _ValueStateConfiguration oldWidget) =>
-      theme != oldWidget.theme;
+      configuration != oldWidget.configuration;
 }
