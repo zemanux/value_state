@@ -12,17 +12,22 @@ typedef OnValueStateError<T> = Widget Function(
     BuildContext context, ErrorState<T> state);
 typedef OnValueStateDefault<T> = Widget Function(
     BuildContext context, BaseState<T> state);
-typedef OnValueStateWrapperForConfiguration<T> = Widget Function(
+typedef OnValueStateWrapper<T> = Widget Function(
     BuildContext context, BaseState<T> state, Widget child);
 
 /// Define default behavior for the states [WaitingState], [NoValueState], [ErrorState].
 /// [builderDefault] can be used when none of this callback is mentionned.
 class ValueStateConfigurationData {
-  const ValueStateConfigurationData(
-      {this.builderWaiting,
-      this.builderNoValue,
-      this.builderError,
-      this.builderDefault});
+  const ValueStateConfigurationData({
+    this.wrapper,
+    this.builderWaiting,
+    this.builderNoValue,
+    this.builderError,
+    this.builderDefault,
+  });
+
+  /// Builder for all states that will be wrapped by this builder.
+  final OnValueStateWrapper? wrapper;
 
   /// Builder for [WaitingState].
   final OnValueStateWaiting? builderWaiting;
@@ -39,12 +44,14 @@ class ValueStateConfigurationData {
   /// Creates a copy of this [ValueStateConfigurationData] but with the given
   /// fields replaced with the new values.
   ValueStateConfigurationData copyWith({
+    OnValueStateWrapper? wrapper,
     OnValueStateWaiting? builderWaiting,
     OnValueStateNoValue? builderNoValue,
     OnValueStateError? builderError,
     OnValueStateDefault? builderDefault,
   }) =>
       ValueStateConfigurationData(
+        wrapper: wrapper ?? this.wrapper,
         builderWaiting: builderWaiting ?? this.builderWaiting,
         builderNoValue: builderNoValue ?? this.builderNoValue,
         builderError: builderError ?? this.builderError,
@@ -59,6 +66,7 @@ class ValueStateConfigurationData {
         configuration ?? const ValueStateConfigurationData();
 
     return baseConfiguration.copyWith(
+      wrapper: wrapper,
       builderWaiting: builderWaiting,
       builderNoValue: builderNoValue,
       builderError: builderError,
@@ -71,14 +79,20 @@ class ValueStateConfigurationData {
       identical(this, other) ||
       runtimeType == other.runtimeType &&
           other is ValueStateConfigurationData &&
+          wrapper == other.wrapper &&
           builderWaiting == other.builderWaiting &&
           builderNoValue == other.builderNoValue &&
           builderError == other.builderError &&
           builderDefault == other.builderDefault;
 
   @override
-  int get hashCode =>
-      Object.hash(builderNoValue, builderWaiting, builderError, builderDefault);
+  int get hashCode => Object.hash(
+        wrapper,
+        builderNoValue,
+        builderWaiting,
+        builderError,
+        builderDefault,
+      );
 }
 
 /// Provide a [ValueStateConfigurationData] for all inherited widget to define

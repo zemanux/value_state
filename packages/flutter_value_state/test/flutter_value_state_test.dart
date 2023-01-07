@@ -33,7 +33,7 @@ class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
   final OnValueStateNoValue<dynamic>? onNoValue;
   final OnValueStateError<dynamic>? onError;
   final OnValueStateDefault<dynamic>? onDefault;
-  final OnValueStateWrapperForConfiguration<dynamic>? wrapper;
+  final OnValueStateWrapper<dynamic>? wrapper;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class _TestConfigurationWidget<T extends BaseState<int>>
   final OnValueStateNoValue<dynamic>? onNoValue;
   final OnValueStateError<dynamic>? onError;
   final OnValueStateDefault<dynamic>? onDefault;
-  final OnValueStateWrapperForConfiguration<dynamic>? wrapper;
+  final OnValueStateWrapper<dynamic>? wrapper;
 
   @override
   State<_TestConfigurationWidget<T>> createState() =>
@@ -186,7 +186,7 @@ void main() {
       await tester.pumpWidget(_TestConfigurationWidget(
           state: const ValueState(1),
           child: Builder(builder: (context) {
-            valueStateConfigurationData = context.stateTheme;
+            valueStateConfigurationData = context.stateConfiguration;
             return const SizedBox.shrink();
           })));
 

@@ -34,6 +34,9 @@ class MyApp extends StatelessWidget {
                     ),
                     builderNoValue: (context, state) =>
                         const Center(child: Text('No value.')),
+                    wrapper: (context, state, child) => AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: child),
                   ),
                   child: child,
                 ),
@@ -63,11 +66,8 @@ class MyHomePage extends StatelessWidget {
                       children: [
                         if (state.refreshing) const LinearProgressIndicator(),
                         const Spacer(),
-                        if (error != null) ...[
-                          error,
-                          const Text('Previous counter value :')
-                        ] else
-                          const Text('Actual counter value :'),
+                        if (error != null) error,
+                        const Text('Counter value :'),
                         Text(
                           state.value.toString(),
                           style: theme.textTheme.headline4,

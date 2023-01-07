@@ -7,7 +7,7 @@ Widget _onDefault<T>(BuildContext context, BaseState<T> state) =>
     const SizedBox.shrink();
 
 extension StateConfigurationExtensions on BuildContext {
-  ValueStateConfigurationData get stateTheme =>
+  ValueStateConfigurationData get stateConfiguration =>
       ValueStateConfiguration.of(this);
 }
 
@@ -19,7 +19,7 @@ extension ValueStateBuilderExtension<T> on BaseState<T> {
     OnValueStateNoValue<T>? onNoValue,
     OnValueStateError<T>? onError,
     OnValueStateDefault<T>? onDefault,
-    OnValueStateWrapperForConfiguration<T>? wrapper,
+    OnValueStateWrapper<T>? wrapper,
     bool valueMixedWithError = false,
   }) =>
       accept(_ValueStateBuilderVisitor<T>(
@@ -51,7 +51,7 @@ class _ValueStateBuilderVisitor<T> extends StateVisitor<Widget, T> {
   final OnValueStateNoValue<T>? onNoValue;
   final OnValueStateError<T>? onError;
   final OnValueStateDefault<T>? onDefault;
-  final OnValueStateWrapperForConfiguration<T>? wrapper;
+  final OnValueStateWrapper<T>? wrapper;
 
   final bool valueMixedWithError;
 
@@ -131,7 +131,7 @@ class _StateBuilder<T> extends StatelessWidget {
   final Widget? Function(BuildContext context,
       ValueStateConfigurationData? valueStateConfiguration) builder;
   final OnValueStateDefault<T>? onDefault;
-  final OnValueStateWrapperForConfiguration<T>? wrapper;
+  final OnValueStateWrapper<T>? wrapper;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +144,8 @@ class _StateBuilder<T> extends StatelessWidget {
       child = localOnDefault(context, state);
     }
 
-    final wrapBuilder = wrapper ?? _defaultWrapper;
+    final wrapBuilder =
+        wrapper ?? valueStateConfiguration?.wrapper ?? _defaultWrapper;
 
     return wrapBuilder(context, state, child);
   }
