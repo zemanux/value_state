@@ -6,17 +6,19 @@ import 'package:synchronized/synchronized.dart';
 import 'package:value_state/value_state.dart';
 
 /// Shortbut to user [BaseState] with [Cubit]
-abstract class ValueCubit<T> extends Cubit<BaseState<T>>
-    with CubitValueStateMixin {
+abstract class ValueCubit<T> extends Cubit<BaseState<T>> with ValueCubitMixin {
   ValueCubit([BaseState<T>? initState]) : super(initState ?? InitState<T>());
 }
 
 /// Shared implementation to handle refresh capability on cubit
 abstract class RefreshValueCubit<T> extends ValueCubit<T>
-    with CubitValueStateMixin {
+    with RefreshValueCubitMixin {
   RefreshValueCubit([BaseState<T>? initState])
       : super(initState ?? InitState<T>());
+}
 
+/// Shared implementation to handle refresh capability on cubit
+mixin RefreshValueCubitMixin<T> on ValueCubitMixin<T> {
   /// Refresh the cubit state.
   Future<void> refresh() async {
     await perform(emitValues);
@@ -32,8 +34,14 @@ abstract class RefreshValueCubit<T> extends ValueCubit<T>
   Future<void> emitValues();
 }
 
-mixin CubitValueStateMixin<T> on Cubit<BaseState<T>> {
-  final _lock = Lock(reentrant: true);
+@Deprecated(
+    'CubitValueStateMixin will be dropped in 2.0, use ValueCubitMixin instead.')
+typedef CubitValueStateMixin<T> = ValueCubitMixin;
+
+/// Shared implementation to handle refresh capability on cubit
+mixin ValueCubitMixin<T> on BlocBase<BaseState<T>> {
+  /// Ensure that [perform] executions are sequential.
+  final _performValueCubitLock = Lock(reentrant: true);
 
   /// Handle states (waiting, refreshing, error...) while an [action] is
   /// processed.
@@ -43,7 +51,7 @@ mixin CubitValueStateMixin<T> on Cubit<BaseState<T>> {
   @protected
   Future<R> perform<R>(FutureOr<R> Function() action,
           {bool errorAsState = true}) =>
-      _lock.synchronized(
+      _performValueCubitLock.synchronized<R>(
         () => performOnState<T, R>(
             state: () => state,
             emitter: emit,
