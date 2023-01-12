@@ -1,16 +1,5 @@
 import 'states.dart';
 
-/// Shortcut to use [RefreshActivationVisitor].
-extension RefreshingExtensions<T> on BaseState<T> {
-  /// Copy the actual object and according to the state can enable refreshing
-  BaseState<T> mayRefreshing() =>
-      accept(RefreshActivationVisitor<T>(mayRefreshing: true));
-
-  /// Copy the actual object and according to the state can disable refreshing
-  BaseState<T> mayNotRefreshing() =>
-      accept(RefreshActivationVisitor<T>(mayRefreshing: false));
-}
-
 typedef WaitingMapperType<T> = BaseState<T>? Function();
 typedef RefreshingyMapperType<T> = BaseState<T>? Function(bool refreshing);
 typedef ErrorMapperType<T, F> = BaseState<T>? Function(

@@ -1,11 +1,15 @@
-part 'states_visitor.dart';
-
 /// Base class for handling value states.
 abstract class BaseState<T> {
   const BaseState();
 
   /// The action is processing to get a new value or refresh it.
   bool get fetching;
+
+  /// Copy the actual object and according to the state can enable refreshing
+  BaseState<T> mayRefreshing();
+
+  /// Copy the actual object and according to the state can disable refreshing
+  BaseState<T> mayNotRefreshing();
 
   /// Visitor pattern to safely enhance class capabilities
   R accept<R>(StateVisitor<R, T> visitor);
@@ -18,6 +22,12 @@ abstract class WaitingState<T> extends BaseState<T> {
   const WaitingState();
 
   @override
+  WaitingState<T> mayRefreshing();
+
+  @override
+  WaitingState<T> mayNotRefreshing();
+
+  @override
   bool get fetching => true;
 }
 
@@ -27,11 +37,18 @@ class InitState<T> extends WaitingState<T> {
   const InitState();
 
   @override
+  WaitingState<T> mayRefreshing() => PendingState<T>();
+
+  @override
+  WaitingState<T> mayNotRefreshing() => PendingState<T>();
+
+  @override
   R accept<R>(StateVisitor<R, T> visitor) => visitor.visitInitState(this);
 
   @override
   bool operator ==(other) =>
       identical(this, other) || runtimeType == other.runtimeType;
+
   @override
   int get hashCode => runtimeType.hashCode;
 }
@@ -40,6 +57,12 @@ class InitState<T> extends WaitingState<T> {
 /// the action to get the value is started, then emit a [WaitingState]
 class PendingState<T> extends WaitingState<T> {
   const PendingState();
+
+  @override
+  WaitingState<T> mayRefreshing() => this;
+
+  @override
+  WaitingState<T> mayNotRefreshing() => this;
 
   @override
   R accept<R>(StateVisitor<R, T> visitor) => visitor.visitPendingState(this);
@@ -68,6 +91,12 @@ abstract class ReadyState<T> extends BaseState<T> {
 
   /// Current state is an error ?
   bool get hasError;
+
+  @override
+  ReadyState<T> mayRefreshing();
+
+  @override
+  ReadyState<T> mayNotRefreshing();
 }
 
 /// State with no value (support null safety).
@@ -82,6 +111,12 @@ class NoValueState<T> extends ReadyState<T> {
 
   @override
   final bool refreshing;
+
+  @override
+  ReadyState<T> mayRefreshing() => NoValueState<T>(refreshing: true);
+
+  @override
+  ReadyState<T> mayNotRefreshing() => NoValueState<T>(refreshing: false);
 
   @override
   R accept<R>(StateVisitor<R, T> visitor) => visitor.visitNoValueState(this);
@@ -117,6 +152,12 @@ class ValueState<T> extends ReadyState<T> implements WithValueState<T> {
 
   @override
   final bool refreshing;
+
+  @override
+  ReadyState<T> mayRefreshing() => ValueState<T>(value, refreshing: true);
+
+  @override
+  ReadyState<T> mayNotRefreshing() => ValueState<T>(value, refreshing: false);
 
   @override
   R accept<R>(StateVisitor<R, T> visitor) => visitor.visitValueState(this);
@@ -184,10 +225,26 @@ abstract class ErrorState<T> extends ReadyState<T> {
   static BaseState<T> _consumePreviousErrors<T>(BaseState<T> state) =>
       state is ErrorState<T>
           ? _consumePreviousErrors<T>(state.stateBeforeError)
-          : state.accept(RefreshActivationVisitor<T>(mayRefreshing: false));
+          : state.mayNotRefreshing();
 
   @override
   final bool refreshing;
+
+  @override
+  ReadyState<T> mayRefreshing() => ErrorState<T>(
+        previousState: stateBeforeError,
+        refreshing: true,
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+  @override
+  ReadyState<T> mayNotRefreshing() => ErrorState<T>(
+        previousState: stateBeforeError,
+        refreshing: false,
+        error: error,
+        stackTrace: stackTrace,
+      );
 
   @override
   R accept<R>(StateVisitor<R, T> visitor) => visitor.visitErrorState(this);
