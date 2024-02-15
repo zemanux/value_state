@@ -45,7 +45,7 @@ mixin StreamInputCubitMixin<T, EVENT> on ValueCubit<T> {
   /// behavior of the mapper.
   void emitMappedState<F>(
     T? Function(F from) map,
-    BaseState<F> fromState, {
+    Value<F> fromState, {
     bool refreshingWithCurrentState = true,
     WaitingMapperType<T>? mapInit,
     WaitingMapperType<T>? mapPending,

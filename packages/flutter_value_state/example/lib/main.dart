@@ -22,17 +22,15 @@ class MyApp extends StatelessWidget {
           title: 'Value Cubit Demo',
           builder: (context, child) => child == null
               ? const SizedBox.shrink()
-              : ValueStateConfiguration(
-                  configuration: ValueStateConfigurationData(
-                    builderWaiting: (context, state) =>
+              : ValueBuilderConfiguration(
+                  configuration: ValueBuilderConfigurationData(
+                    initial: (context, state) =>
                         const Center(child: CircularProgressIndicator()),
-                    builderError: (context, state) => Center(
+                    failure: (context, state) => Center(
                       child: Text('Expected error.',
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.error)),
                     ),
-                    builderNoValue: (context, state) =>
-                        const Center(child: Text('No value.')),
                     wrapper: (context, state, child) => AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
                         child: child),
@@ -51,7 +49,7 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BlocBuilder<CounterCubit, BaseState<int>>(builder: (context, state) {
+    return BlocBuilder<CounterCubit, Value<int>>(builder: (context, state) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Flutter Demo Home Page'),
@@ -63,26 +61,26 @@ class MyHomePage extends StatelessWidget {
               onValue: (context, state, error) => Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (state.refreshing) const LinearProgressIndicator(),
+                        if (state.isFetching) const LinearProgressIndicator(),
                         const Spacer(),
                         if (error != null) error,
                         const Text('Counter value :'),
                         Text(
-                          state.value.toString(),
+                          state.data.toString(),
                           style: theme.textTheme.headlineMedium,
                         ),
                         const Spacer(),
                       ]),
               valueMixedWithError: true),
         ),
-        floatingActionButton: state is! ReadyState<int>
+        floatingActionButton: state.isInitial
             ? null
             : FloatingActionButton(
-                onPressed: state.refreshing
+                onPressed: state.isFetching
                     ? null
                     : context.read<CounterCubit>().increment,
                 tooltip: 'Increment',
-                child: state.refreshing
+                child: state.isFetching
                     ? SizedBox.square(
                         dimension: 20,
                         child: CircularProgressIndicator(

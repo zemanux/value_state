@@ -10,15 +10,14 @@ const _waitingWidgetKey = ValueKey('waitingWidget');
 const _wrapperWidgetKey = ValueKey('wrapperWidget');
 const _defaultWidgetType = SizedBox;
 
-late ValueStateConfigurationData _valueStateConfigurationData;
+late ValueBuilderConfigurationData _valueStateConfigurationData;
 
-class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
+class _TestWidget<T extends Value<int>> extends StatelessWidget {
   const _TestWidget({
     required this.state,
     this.valueMixedWithError = false,
     this.child,
     this.onWaiting,
-    this.onNoValue,
     this.onError,
     this.onDefault,
     this.wrapper,
@@ -32,7 +31,6 @@ class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
   final Widget? child;
 
   final OnValueStateWaiting<dynamic>? onWaiting;
-  final OnValueStateNoValue<dynamic>? onNoValue;
   final OnValueStateError<dynamic>? onError;
   final OnValueStateDefault<dynamic>? onDefault;
   final OnValueStateWrapper<dynamic>? wrapper;
@@ -56,7 +54,6 @@ class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
       valueMixedWithError: valueMixedWithError,
       onDefault: onDefault,
       onError: onError,
-      onNoValue: onNoValue,
       onWaiting: onWaiting,
       wrapper: wrapper,
       wrapped: wrapped,
@@ -64,15 +61,13 @@ class _TestWidget<T extends BaseState<int>> extends StatelessWidget {
   }
 }
 
-class _TestConfigurationWidget<T extends BaseState<int>>
-    extends StatefulWidget {
+class _TestConfigurationWidget<T extends Value<int>> extends StatefulWidget {
   const _TestConfigurationWidget({
     super.key,
     required this.state,
     this.valueMixedWithError = false,
     this.child,
     this.onWaiting,
-    this.onNoValue,
     this.onError,
     this.onDefault,
     this.wrapper,
@@ -86,7 +81,6 @@ class _TestConfigurationWidget<T extends BaseState<int>>
   final Widget? child;
 
   final OnValueStateWaiting<dynamic>? onWaiting;
-  final OnValueStateNoValue<dynamic>? onNoValue;
   final OnValueStateError<dynamic>? onError;
   final OnValueStateDefault<dynamic>? onDefault;
   final OnValueStateWrapper<dynamic>? wrapper;
@@ -99,7 +93,7 @@ class _TestConfigurationWidget<T extends BaseState<int>>
       _TestConfigurationWidgetState<T>();
 }
 
-class _TestConfigurationWidgetState<T extends BaseState<int>>
+class _TestConfigurationWidgetState<T extends Value<int>>
     extends State<_TestConfigurationWidget<T>> {
   OnValueStateError _onError =
       (context, state) => const SizedBox.shrink(key: _errorWidgetKey);
@@ -112,19 +106,17 @@ class _TestConfigurationWidgetState<T extends BaseState<int>>
 
   @override
   Widget build(BuildContext context) {
-    _valueStateConfigurationData = ValueStateConfigurationData(
+    _valueStateConfigurationData = ValueBuilderConfigurationData(
       builderDefault: (context, state) =>
           const SizedBox.shrink(key: _defaultWidgetKey),
-      builderError: _onError,
-      builderNoValue: (context, state) =>
-          const SizedBox.shrink(key: _noValueWidgetKey),
-      builderWaiting: (context, state) =>
+      failure: _onError,
+      initial: (context, state) =>
           const SizedBox.shrink(key: _waitingWidgetKey),
       wrapper: (context, state, child) =>
           KeyedSubtree(key: _wrapperWidgetKey, child: child),
     );
 
-    return ValueStateConfiguration(
+    return ValueBuilderConfiguration(
         configuration: _valueStateConfigurationData,
         child: _TestWidget<T>(
           state: widget.state,
@@ -132,7 +124,6 @@ class _TestConfigurationWidgetState<T extends BaseState<int>>
           child: widget.child,
           onDefault: widget.onDefault,
           onError: widget.onError,
-          onNoValue: widget.onNoValue,
           onWaiting: widget.onWaiting,
           wrapper: widget.wrapper,
           wrapped: widget.wrapped,
@@ -142,37 +133,33 @@ class _TestConfigurationWidgetState<T extends BaseState<int>>
 }
 
 void main() {
-  test('$ValueStateConfiguration.copyWith without parameter', () {
-    const configuration = ValueStateConfigurationData();
+  test('$ValueBuilderConfiguration.copyWith without parameter', () {
+    const configuration = ValueBuilderConfigurationData();
 
     expect(configuration.copyWith(), configuration);
   });
 
   group('without configuration', () {
-    testWidgets('buildWidget with ${ValueState<int>}', (tester) async {
-      await tester.pumpWidget(const _TestWidget(state: ValueState(1)));
+    testWidgets('buildWidget with ${Value<int>}', (tester) async {
+      await tester.pumpWidget(_TestWidget(state: Value.success(1)));
 
       expect(find.byKey(_buildWidgetKey), findsOneWidget);
       expect(find.byType(_defaultWidgetType), findsOneWidget);
     });
 
-    testWidgets('buildWidget without parameter with ${ValueState<int>}',
+    testWidgets('buildWidget without parameter with ${Value<int>}',
         (tester) async {
-      await tester.pumpWidget(const ValueState(1).buildWidget());
+      await tester.pumpWidget(Value.success(1).buildWidget());
 
       expect(find.byKey(_buildWidgetKey), findsNothing);
       expect(find.byType(_defaultWidgetType), findsOneWidget);
     });
 
-    for (final state in <BaseState<int>>[
-      const InitState(),
-      const PendingState(),
-      // const ValueState(1),
-      const NoValueState(),
-      ErrorState<int>(
-          previousState: const InitState<int>(),
-          error: 'Error',
-          refreshing: false)
+    for (final state in <Value<int>>[
+      const Value.initial(),
+      const Value.initial(isFetching: true),
+      Value.success(1),
+      Value.failure('Error', isFetching: false)
     ]) {
       testWidgets('defaultBuilder with ${state.runtimeType}', (tester) async {
         await tester.pumpWidget(_TestWidget(state: state));
@@ -185,8 +172,8 @@ void main() {
           'defaultBuilder with empty configuration ${state.runtimeType}',
           (tester) async {
         await tester.pumpWidget(
-          ValueStateConfiguration(
-              configuration: const ValueStateConfigurationData(),
+          ValueBuilderConfiguration(
+              configuration: const ValueBuilderConfigurationData(),
               child: _TestWidget(state: state)),
         );
 
@@ -195,15 +182,11 @@ void main() {
       });
     }
 
-    for (final state in <BaseState<int>>[
-      const InitState(),
-      const PendingState(),
-      // const ValueState(1),
-      const NoValueState(),
-      ErrorState<int>(
-          previousState: const InitState<int>(),
-          error: 'Error',
-          refreshing: false)
+    for (final state in <Value<int>>[
+      const Value.initial(),
+      const Value.initial(isFetching: true),
+      Value.success(1),
+      Value.failure('Error', isFetching: false)
     ]) {
       testWidgets('defaultBuilder with ${state.runtimeType}', (tester) async {
         await tester.pumpWidget(_TestWidget(state: state));
@@ -216,11 +199,11 @@ void main() {
 
   group('with configuration', () {
     testWidgets('should get ValueStateConfigurationData', (tester) async {
-      late ValueStateConfigurationData valueStateConfigurationData;
+      late ValueBuilderConfigurationData valueStateConfigurationData;
       await tester.pumpWidget(_TestConfigurationWidget(
-          state: const ValueState(1),
+          state: Value.success(1),
           child: Builder(builder: (context) {
-            valueStateConfigurationData = ValueStateConfiguration.of(context);
+            valueStateConfigurationData = ValueBuilderConfiguration.of(context);
             return const SizedBox.shrink();
           })));
 
@@ -229,11 +212,11 @@ void main() {
           _valueStateConfigurationData.hashCode);
     });
 
-    testWidgets('buildWidget with ${ValueState<int>}', (tester) async {
+    testWidgets('buildWidget with ${Value<int>}', (tester) async {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: const ValueState(1),
+        state: Value.success(1),
       ));
 
       expect(find.byKey(_buildWidgetKey), findsOneWidget);
@@ -247,18 +230,12 @@ void main() {
       expect(find.byType(_defaultWidgetType), findsOneWidget);
     });
 
-    for (final state in <BaseState<int>, Key>{
-      const InitState(): _waitingWidgetKey,
-      const PendingState(): _waitingWidgetKey,
-      const NoValueState(): _noValueWidgetKey,
-      ErrorState<int>(
-          previousState: const InitState<int>(),
-          error: 'Error',
-          refreshing: false): _errorWidgetKey,
-      ErrorState<int>(
-          previousState: 0.toState(),
-          error: 'Error',
-          refreshing: false): _errorWidgetKey,
+    for (final state in <Value<int>, Key>{
+      const Value.initial(): _waitingWidgetKey,
+      const Value.initial(isFetching: true): _waitingWidgetKey,
+      Value.success(1): _buildWidgetKey,
+      Value.failure('Error', isFetching: false): _errorWidgetKey,
+      Value.success(0).toFailure('Error', isFetching: true): _errorWidgetKey,
     }.entries) {
       testWidgets('build with ${state.key.runtimeType}', (tester) async {
         await tester.pumpWidget(_TestConfigurationWidget(state: state.key));
@@ -281,14 +258,11 @@ void main() {
       });
     }
 
-    for (final state in <BaseState<int>, Key>{
-      const InitState(): _waitingWidgetKey,
-      const PendingState(): _waitingWidgetKey,
-      const NoValueState(): _noValueWidgetKey,
-      ErrorState<int>(
-          previousState: const InitState<int>(),
-          error: 'Error',
-          refreshing: false): _errorWidgetKey,
+    for (final state in <Value<int>, Key>{
+      const Value.initial(): _waitingWidgetKey,
+      const Value.initial(isFetching: true): _waitingWidgetKey,
+      Value.success(1): _noValueWidgetKey,
+      Value.failure('Error', isFetching: false): _errorWidgetKey,
     }.entries) {
       const wrapperKey = Key('innerWrapperWidget');
       testWidgets(
@@ -298,7 +272,6 @@ void main() {
           state: state.key,
           onDefault: (context, state) => Container(key: _defaultWidgetKey),
           onError: (context, state) => Container(key: _errorWidgetKey),
-          onNoValue: (context, state) => Container(key: _noValueWidgetKey),
           onWaiting: (context, state) => Container(key: _waitingWidgetKey),
           wrapper: (context, state, child) =>
               Center(key: wrapperKey, child: child),
@@ -319,7 +292,6 @@ void main() {
           state: state.key,
           onDefault: (context, state) => Container(key: _defaultWidgetKey),
           onError: (context, state) => Container(key: _errorWidgetKey),
-          onNoValue: (context, state) => Container(key: _noValueWidgetKey),
           onWaiting: (context, state) => Container(key: _waitingWidgetKey),
           wrapper: (context, state, child) =>
               Center(key: wrapperKey, child: child),
@@ -335,16 +307,14 @@ void main() {
       });
     }
 
-    testWidgets(
-        'build with ${ErrorWithoutPreviousValue<int>} with and valueMixedWithError',
+    testWidgets('build with ${Value<int>}.failure with and valueMixedWithError',
         (tester) async {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: ErrorState<int>(
-          previousState: const InitState(),
-          error: 'Error',
-          refreshing: false,
+        state: Value.success(1).toFailure(
+          'Error',
+          isFetching: false,
         ),
         valueMixedWithError: true,
       ));
@@ -354,14 +324,13 @@ void main() {
       expect(find.byType(_defaultWidgetType), findsOneWidget);
     });
 
-    testWidgets('build with ${ErrorWithPreviousValue<int>}', (tester) async {
+    testWidgets('build with ${Value<int>}.failure', (tester) async {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: ErrorState<int>(
-          previousState: const ValueState(1),
-          error: 'Error',
-          refreshing: false,
+        state: Value.success(1).toFailure(
+          'Error',
+          isFetching: false,
         ),
       ));
 
@@ -380,15 +349,14 @@ void main() {
     });
 
     testWidgets(
-        'build with ${ErrorWithPreviousValue<int>} with and valueMixedWithError',
+        'build with ${Value<int>}.failure with data and valueMixedWithError',
         (tester) async {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: ErrorState<int>(
-          previousState: const ValueState(1),
-          error: 'Error',
-          refreshing: false,
+        state: Value.success(1).toFailure(
+          'Error',
+          isFetching: false,
         ),
         valueMixedWithError: true,
       ));

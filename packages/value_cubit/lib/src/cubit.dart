@@ -52,8 +52,8 @@ mixin ValueCubitMixin<T> on BlocBase<BaseState<T>> {
   Future<R> perform<R>(FutureOr<R> Function() action,
           {bool errorAsState = true}) =>
       _performValueCubitLock.synchronized<R>(
-        () => performOnState<T, R>(
-            state: () => state,
+        () => fetchOnValue<T, R>(
+            value: () => state,
             emitter: (state) {
               if (!isClosed) {
                 emit(state);

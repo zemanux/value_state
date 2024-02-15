@@ -21,18 +21,18 @@ class CounterStream {
     }
   }
 
-  BaseState<int> state = const InitState();
+  Value<int?> state = const Value.initial();
 
-  final _resultStreamController = StreamController<BaseState<int>>();
-  Stream<BaseState<int>> get stream => Stream.value(state)
+  final _resultStreamController = StreamController<Value<int?>>();
+  Stream<Value<int?>> get stream => Stream.value(state)
       .followedBy(_resultStreamController.stream)
       .handleError((_) {});
 
   var errorsRaisedCount = 0;
 
   Future<void> incrementValue() async {
-    await performOnState<int, void>(
-        state: () => state,
+    await fetchOnValue<int?, void>(
+        value: () => state,
         emitter: (state) {
           this.state = state;
           _resultStreamController.add(this.state);
@@ -40,14 +40,14 @@ class CounterStream {
         action: (state, emitter) async {
           final result = await _getMyValueFromRepository();
 
-          emitter(result == null ? const NoValueState() : ValueState(result));
+          emitter(Value.success(result));
         }).onError((error, stackTrace) {
       errorsRaisedCount++;
     });
   }
 
   void clear() {
-    _resultStreamController.add(const PendingState());
+    _resultStreamController.add(const Value.initial(isFetching: true));
   }
 
   Future<void> close() async {

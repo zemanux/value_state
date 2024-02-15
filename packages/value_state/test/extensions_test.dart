@@ -3,167 +3,113 @@ import 'package:value_state/value_state.dart';
 
 void main() {
   const myStr = 'My String';
-  const myStrOrElse = 'My String orElse';
+  const myError = 'Error';
 
-  group('toState()', () {
-    test('on a non null String', () {
-      expect(myStr.toState(), const ValueState(myStr));
-      expect(myStr.toState(refreshing: true),
-          const ValueState(myStr, refreshing: true));
-    });
-    test('on null', () {
-      const String? nullStr = null;
+  group('test ValueExtensions', () {
+    const initial = Value<String>.initial();
+    final success = Value<String>.success(myStr);
 
-      expect(nullStr.toState(), const NoValueState<String>());
-      expect(nullStr.toState(refreshing: true),
-          const NoValueState<String>(refreshing: true));
-    });
-  });
+    final failure = Value<String>.failure(myError);
+    final failureWithData = success.toFailure(myError);
 
-  String? modifier(String value) => '$value modified';
+    test('toSuccess', () {
+      expect(initial.toSuccess(myStr), Value<String>.success(myStr));
+      expect(initial.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
+      expect(initial.toFailure(myError), Value<String>.failure(myError));
+      expect(initial.toFailure(myError, isFetching: true),
+          Value<String>.failure(myError, isFetching: true));
 
-  group('withValue', () {
-    test('on a $ValueState', () {
-      final result = myStr.toState().withValue(modifier);
+      expect(success.toSuccess(myStr), Value<String>.success(myStr));
+      expect(success.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
 
-      expect(result, modifier(myStr));
-    });
+      expect(failure.toSuccess(myStr), Value<String>.success(myStr));
+      expect(failure.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
 
-    test('on a $ValueState with onlyValueState to true', () {
-      final result = myStr.toState().withValue(modifier, onlyValueState: true);
-
-      expect(result, modifier(myStr));
+      expect(failureWithData.toSuccess(myStr), Value<String>.success(myStr));
+      expect(failureWithData.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
     });
 
-    test('on a $InitState', () {
-      final result = const InitState<String>().withValue(modifier);
+    test('toFailure', () {
+      expect(initial.toFailure(myError), Value<String>.failure(myError));
+      expect(initial.toFailure(myError, isFetching: true),
+          Value<String>.failure(myError, isFetching: true));
 
-      expect(result, isNull);
-    });
+      expect(failure.toFailure(myError), Value<String>.failure(myError));
+      expect(failure.toFailure(myError, isFetching: true),
+          Value<String>.failure(myError, isFetching: true));
 
-    test('on a $InitState with onlyValueState to true', () {
-      final result =
-          const InitState<String>().withValue(modifier, onlyValueState: true);
-
-      expect(result, isNull);
-    });
-
-    test('on a $ErrorState', () {
-      final result =
-          ErrorState<String>(error: 'Error', previousState: myStr.toState())
-              .withValue(modifier);
-
-      expect(result, modifier(myStr));
-    });
-
-    test('on a $ErrorState with onlyValueState to true', () {
-      final result =
-          ErrorState<String>(error: 'Error', previousState: myStr.toState())
-              .withValue(modifier, onlyValueState: true);
-
-      expect(result, isNull);
-    });
-
-    test('orElse on a $ValueState', () {
-      final result =
-          myStr.toState().withValue(modifier).orElse(() => myStrOrElse);
-
-      expect(result, modifier(myStr));
-    });
-
-    test('orElse on a $InitState', () {
-      final result = const InitState<String>()
-          .withValue(modifier)
-          .orElse(() => myStrOrElse);
-
-      expect(result, myStrOrElse);
-    });
-
-    test('expression on a $ValueState', () {
-      String? result;
-      myStr.toState().withValue((value) {
-        result = modifier(value);
-      });
-
-      expect(result, modifier(myStr));
+      expect(
+        failureWithData,
+        isA<Value<String>>()
+            .having((value) => value.isFetching, 'is not fetching', false)
+            .having((value) => value.isFailure, 'is failure', true)
+            .having(
+              (value) => value.error,
+              'failure content',
+              myError,
+            ),
+      );
+      expect(
+        success.toFailure(myError, isFetching: true),
+        isA<Value<String>>()
+            .having((value) => value.isFetching, 'is fetching', true)
+            .having((value) => value.isFailure, 'is failure', true)
+            .having(
+              (value) => value.error,
+              'failure content',
+              myError,
+            ),
+      );
     });
   });
 
-  group('whenValue', () {
-    test('on a $ValueState', () {
-      final result = myStr.toState().whenValue(modifier);
-
-      expect(result, modifier(myStr));
+  group('test Future.toValues', () {
+    test('on success', () {
+      expect(
+          Future.value(myStr).toValues(),
+          emitsInOrder([
+            const Value<String>.initial(isFetching: true),
+            Value<String>.success(myStr),
+            emitsDone,
+          ]));
     });
 
-    test('on a $ErrorState', () {
-      final result =
-          ErrorState<String>(error: 'Error', previousState: myStr.toState())
-              .whenValue(modifier);
-
-      expect(result, isNull);
-    });
-  });
-
-  group('toValue', () {
-    test('on a $ValueState', () {
-      final result = myStr.toState().toValue();
-
-      expect(result, myStr);
-    });
-
-    test('on a $ValueState with onlyValueState to true', () {
-      final result = myStr.toState().toValue(onlyValueState: true);
-
-      expect(result, myStr);
+    test('on failure', () {
+      expect(
+          Future<String>(() => throw myError).toValues(),
+          emitsInOrder([
+            const Value<String>.initial(isFetching: true),
+            isA<Value<String>>()
+                .having((value) => value.isFetching, 'is not fetching', false)
+                .having((value) => value.isFailure, 'is failure', true)
+                .having(
+                  (value) => value.error,
+                  'failure content',
+                  myError,
+                ),
+            emitsDone,
+          ]));
     });
 
-    test('on a $InitState', () {
-      final result = const InitState<String>().toValue();
-
-      expect(result, isNull);
+    test('on failure without guard', () {
+      expect(
+          Future<String>(() => throw myError).toValues(guarded: false),
+          emitsInOrder([
+            const Value<String>.initial(isFetching: true),
+            isA<Value<String>>()
+                .having((value) => value.isFetching, 'is not fetching', false)
+                .having((value) => value.isFailure, 'is failure', true)
+                .having(
+                  (value) => value.error,
+                  'failure content',
+                  myError,
+                ),
+            emitsDone,
+          ]));
     });
-
-    test('on a $InitState with onlyValueState to true', () {
-      final result = const InitState<String>().toValue(onlyValueState: true);
-
-      expect(result, isNull);
-    });
-
-    test('on a $ErrorState', () {
-      final result =
-          ErrorState<String>(error: 'Error', previousState: myStr.toState())
-              .toValue();
-
-      expect(result, myStr);
-    });
-
-    test('on a $ErrorState with onlyValueState to true', () {
-      final result =
-          ErrorState<String>(error: 'Error', previousState: myStr.toState())
-              .toValue(onlyValueState: true);
-
-      expect(result, isNull);
-    });
-  });
-
-  test('toFutureState', () {
-    const value = 'Result';
-
-    expect(Future.value(value).toFutureState(), completion(value.toState()));
-    expect(Future<String?>.value(null).toFutureState(),
-        completion(const NoValueState<String>()));
-  });
-
-  test('toStates', () {
-    const value = 'Result';
-
-    expect(
-        Future.value(value).toStates(),
-        emitsInOrder([
-          const PendingState<String>(),
-          const ValueState(value),
-          emitsDone,
-        ]));
   });
 }

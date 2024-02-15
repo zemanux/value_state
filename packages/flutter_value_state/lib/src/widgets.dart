@@ -4,17 +4,16 @@ import 'package:value_state/value_state.dart';
 import 'configuration.dart';
 
 extension StateConfigurationExtensions on BuildContext {
-  ValueStateConfigurationData get stateConfiguration =>
-      ValueStateConfiguration.maybeOf(this) ??
-      const ValueStateConfigurationData();
+  ValueBuilderConfigurationData get stateConfiguration =>
+      ValueBuilderConfiguration.maybeOf(this) ??
+      const ValueBuilderConfigurationData();
 }
 
-extension ValueStateBuilderExtension<T> on BaseState<T> {
+extension ValueStateBuilderExtension<T> on Value<T> {
   Widget buildWidget({
     Key? key,
     OnValueStateWithValue<T>? onValue,
     OnValueStateWaiting<T>? onWaiting,
-    OnValueStateNoValue<T>? onNoValue,
     OnValueStateError<T>? onError,
     OnValueStateDefault<T>? onDefault,
     OnValueStateWrapper<T>? wrapper,
@@ -26,7 +25,6 @@ extension ValueStateBuilderExtension<T> on BaseState<T> {
         onDefault: onDefault,
         onError: onError,
         onWithValue: onValue,
-        onNoValue: onNoValue,
         onWaiting: onWaiting,
         valueMixedWithError: valueMixedWithError,
         wrapped: wrapped,
@@ -39,7 +37,6 @@ class ValueStateWidget<T> extends StatelessWidget {
     required this.state,
     this.onWithValue,
     this.onWaiting,
-    this.onNoValue,
     this.onError,
     this.onDefault,
     this.wrapper,
@@ -47,13 +44,12 @@ class ValueStateWidget<T> extends StatelessWidget {
     this.valueMixedWithError = false,
   });
 
-  final BaseState<T> state;
+  final Value<T> state;
 
   final OnValueStateWithValue<T>? onWithValue;
 
   final OnValueStateWaiting<T>? onWaiting;
 
-  final OnValueStateNoValue<T>? onNoValue;
   final OnValueStateError<T>? onError;
   final OnValueStateDefault<T>? onDefault;
   final OnValueStateWrapper<T>? wrapper;
@@ -64,14 +60,12 @@ class ValueStateWidget<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = this.state;
-    if (state is WaitingState<T>) {
-      return _buildWaitingState(context, state);
-    } else if (state is NoValueState<T>) {
-      return _buildNoValueState(context, state);
-    } else if (state is ValueState<T>) {
-      return _buildWithValueState(context, state);
-    } else if (state is ErrorState<T>) {
-      return _buildErrorState(context, state);
+    if (state.isInitial) {
+      return _buildInitState(context, state);
+    } else if (state.isSuccess) {
+      return _buildSuccess(context, state);
+    } else if (state.isFailure) {
+      return _buildError(context, state);
     }
 
     // coverage:ignore-start
@@ -81,10 +75,10 @@ class ValueStateWidget<T> extends StatelessWidget {
 
   Widget _builder(
     BuildContext context,
-    BaseState<T> state,
+    Value<T> state,
     Widget Function(
       BuildContext context,
-      ValueStateConfigurationData valueStateConfiguration,
+      ValueBuilderConfigurationData valueStateConfiguration,
       OnValueStateDefault<T>? onDefault,
     ) builder,
   ) {
@@ -100,7 +94,7 @@ class ValueStateWidget<T> extends StatelessWidget {
         : child;
   }
 
-  Widget _buildWaitingState(BuildContext context, WaitingState<T> state) =>
+  Widget _buildInitState(BuildContext context, Value<T> state) =>
       _builder(context, state, (context, valueStateConfiguration, onDefault) {
         final onWaiting = this.onWaiting ??
             onDefault ??
@@ -109,22 +103,13 @@ class ValueStateWidget<T> extends StatelessWidget {
         return onWaiting(context, state);
       });
 
-  Widget _buildNoValueState(BuildContext context, NoValueState<T> state) =>
-      _builder(context, state, (context, valueStateConfiguration, onDefault) {
-        final onNoValue = this.onNoValue ??
-            onDefault ??
-            valueStateConfiguration.builderNoValue;
-
-        return onNoValue(context, state);
-      });
-
-  Widget _buildWithValueState(BuildContext context, WithValueState<T> state) =>
+  Widget _buildSuccess(BuildContext context, Value<T> state) =>
       _builder(context, state, (context, valueStateConfiguration, onDefault) {
         final onError =
             this.onError ?? onDefault ?? valueStateConfiguration.builderError;
         Widget? error;
 
-        if (state is ErrorWithPreviousValue<T>) {
+        if (state.hasData) {
           error = onError(context, state);
         }
 
@@ -133,9 +118,9 @@ class ValueStateWidget<T> extends StatelessWidget {
             valueStateConfiguration.builderDefault(context, state);
       });
 
-  Widget _buildErrorState(BuildContext context, ErrorState<T> state) {
-    if (valueMixedWithError && state is ErrorWithPreviousValue<T>) {
-      return _buildWithValueState(context, state);
+  Widget _buildError(BuildContext context, Value<T> state) {
+    if (valueMixedWithError && state.hasData) {
+      return _buildSuccess(context, state);
     }
 
     return _builder(context, state,
