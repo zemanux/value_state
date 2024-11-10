@@ -6,88 +6,159 @@ import 'package:value_state/value_state.dart';
 void main() {
   const value = 0;
   const error = 'Error';
+  final stackTrace = StackTrace.fromString('My StackTrace');
 
-  test('test getters', () {
-    final initial = Value<int>.initial();
+  group('test getters', () {
+    test('initial state', () {
+      final state = Value<int>.initial();
 
-    expect(initial.isInitial, isTrue);
-    expect(initial.isFetching, isFalse);
-    expect(initial.isSuccess, isFalse);
-    expect(initial.isFailure, isFalse);
-    expect(initial.hasData, isFalse);
-    expect(initial.hasError, isFalse);
-    expect(initial.hasStackTrace, isFalse);
-    expect(() => initial.data, throwsA(isA<StateError>()));
-    expect(() => initial.error, throwsA(isA<StateError>()));
-    expect(() => initial.stackTrace, throwsA(isA<StateError>()));
+      expect(state.isInitial, isTrue);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isFalse);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, isNull);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
 
-    final fetching = Value<int>.initial(isFetching: true);
+    test('initial state fetching', () {
+      final state = Value<int>.initial(isFetching: true);
 
-    expect(fetching.isInitial, isTrue);
-    expect(fetching.isFetching, isTrue);
-    expect(fetching.isSuccess, isFalse);
-    expect(fetching.isFailure, isFalse);
-    expect(fetching.hasData, isFalse);
-    expect(fetching.hasError, isFalse);
-    expect(fetching.hasStackTrace, isFalse);
-    expect(() => initial.data, throwsA(isA<StateError>()));
-    expect(() => initial.error, throwsA(isA<StateError>()));
-    expect(() => fetching.stackTrace, throwsA(isA<StateError>()));
+      expect(state.isInitial, isTrue);
+      expect(state.isFetching, isTrue);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isFalse);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, isNull);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
 
-    final success = Value.success(value);
+    test('success state', () {
+      final state = Value.success(value);
 
-    expect(success.isInitial, isFalse);
-    expect(success.isFetching, isFalse);
-    expect(success.isSuccess, isTrue);
-    expect(success.isFailure, isFalse);
-    expect(success.hasData, isTrue);
-    expect(success.hasError, isFalse);
-    expect(success.hasStackTrace, isFalse);
-    expect(success.data, value);
-    expect(() => initial.error, throwsA(isA<StateError>()));
-    expect(() => success.stackTrace, throwsA(isA<StateError>()));
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
 
-    final successWithNullData = Value<int?>.success(null);
+    test('success state', () {
+      final state = Value.success(value);
 
-    expect(successWithNullData.isInitial, isFalse);
-    expect(successWithNullData.isFetching, isFalse);
-    expect(successWithNullData.isSuccess, isTrue);
-    expect(successWithNullData.isFailure, isFalse);
-    expect(successWithNullData.hasData, isTrue);
-    expect(successWithNullData.hasError, isFalse);
-    expect(successWithNullData.hasStackTrace, isFalse);
-    expect(() => initial.data, throwsA(isA<StateError>()));
-    expect(() => initial.error, throwsA(isA<StateError>()));
-    expect(
-      () => successWithNullData.stackTrace,
-      throwsA(isA<StateError>()),
-    );
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, null);
+      expect(state.stackTrace, null);
+    });
 
-    final failure = Value<int>.failure(error);
+    test('success state fetching', () {
+      final state = Value.success(value, isFetching: true);
 
-    expect(failure.isInitial, isFalse);
-    expect(failure.isFetching, isFalse);
-    expect(failure.isSuccess, isFalse);
-    expect(failure.isFailure, isTrue);
-    expect(failure.hasData, isFalse);
-    expect(failure.hasError, isTrue);
-    expect(failure.hasStackTrace, isFalse);
-    expect(() => initial.data, throwsA(isA<StateError>()));
-    expect(failure.error, error);
-    expect(failure.stackTrace, isNull);
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isTrue);
+      expect(state.isRefreshing, isTrue);
+      expect(state.isFetching, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
 
-    final failureWithData = success.toFailure(error);
+    test('success state with null data', () {
+      final state = Value<int?>.success(null);
 
-    expect(failureWithData.isInitial, isFalse);
-    expect(failureWithData.isFetching, isFalse);
-    expect(failureWithData.isSuccess, isFalse);
-    expect(failureWithData.isFailure, isTrue);
-    expect(failureWithData.hasData, isTrue);
-    expect(failureWithData.hasError, isTrue);
-    expect(failureWithData.hasStackTrace, isFalse);
-    expect(failureWithData.data, value);
-    expect(failureWithData.error, error);
-    expect(failureWithData.stackTrace, isNull);
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, isNull);
+      expect(state.error, isNull);
+      expect(
+        state.stackTrace,
+        null,
+      );
+    });
+
+    test('failure state', () {
+      final state = Value<int>.failure(error, stackTrace: stackTrace);
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isTrue);
+      expect(state.hasData, isFalse);
+      expect(state.hasError, isTrue);
+      expect(state.hasStackTrace, isTrue);
+      expect(state.data, isNull);
+      expect(state.error, error);
+      expect(state.stackTrace, stackTrace);
+    });
+
+    test('failure state fetching', () {
+      final state = Value<int>.failure(
+        error,
+        stackTrace: stackTrace,
+        isFetching: true,
+      );
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isTrue);
+      expect(state.isRefreshing, isTrue);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isTrue);
+      expect(state.hasData, isFalse);
+      expect(state.hasError, isTrue);
+      expect(state.hasStackTrace, isTrue);
+      expect(state.data, isNull);
+      expect(state.error, error);
+      expect(state.stackTrace, stackTrace);
+    });
+
+    test('success to failure state', () {
+      final state = Value.success(value).toFailure(error);
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isTrue);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isTrue);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, error);
+      expect(state.stackTrace, isNull);
+    });
   });
 
   test('test equalities and hash', () {

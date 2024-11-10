@@ -15,7 +15,7 @@ class CounterCubit extends Cubit<Value<int>> {
         if (result == 2) {
           throw 'Error';
         } else {
-          return Value.success(result);
+          return result;
         }
       }).forEach(emit);
 }

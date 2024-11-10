@@ -45,15 +45,15 @@ Future<R> fetchOnValue<T, R>({
   }
 }
 
-extension ValueStatePerformExtensions<T> on Value<T> {
+extension ValueStateFetchExtensions<T> on Value<T> {
   Stream<Value<T>> fetch(
-    Future<Value<T>> Function() action, {
+    Future<T> Function() action, {
     bool guarded = true,
   }) {
     return fetchStream(action().asStream(), guarded: guarded);
   }
 
-  Stream<Value<T>> fetchStream(Stream<Value<T>> stream, {bool guarded = true}) {
+  Stream<Value<T>> fetchStream(Stream<T> stream, {bool guarded = true}) {
     final controller = StreamController<Value<T>>();
     var lastValue = this;
 
@@ -63,14 +63,18 @@ extension ValueStatePerformExtensions<T> on Value<T> {
         lastValue = value;
         controller.add(value);
       },
-      action: (value, emit) => stream.forEach(emit),
+      action: (value, emit) => stream.forEach(
+        (data) => emit(Value.success(data)),
+      ),
     ).onError((error, stackTrace) {
       if (error != null && !guarded) {
-        throw error;
+        controller.addError(error, stackTrace);
       }
-    }).whenComplete(() {
-      controller.close();
-    });
+    }).whenComplete(
+      () {
+        controller.close();
+      },
+    );
 
     return controller.stream;
   }

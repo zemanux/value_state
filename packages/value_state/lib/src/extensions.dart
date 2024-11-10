@@ -2,9 +2,10 @@ import 'fetch.dart';
 import 'value.dart';
 
 extension ValueExtensions<T> on Value<T> {
-  Value<T> toSuccess(T data, {bool? isFetching}) => Value.success(
-        data,
-        isFetching: isFetching ?? this.isFetching,
+  Value<T> toSuccess(T data, {bool? isFetching}) => merge(
+        Value.success(data),
+        mapData: (from) => data,
+        isFetching: isFetching,
       );
 
   Value<T> toFailure(
@@ -13,11 +14,8 @@ extension ValueExtensions<T> on Value<T> {
     bool? isFetching,
   }) =>
       merge(
-        Value.failure(
-          error,
-          stackTrace: stackTrace,
-          isFetching: isFetching ?? this.isFetching,
-        ),
+        Value.failure(error, stackTrace: stackTrace),
+        isFetching: isFetching,
       );
 
   /// Copy the actual object with fetching as [isFetching].
@@ -28,7 +26,7 @@ extension ValueExtensions<T> on Value<T> {
 extension FutureValueStateExtension<T> on Future<T> {
   /// Generate a stream of [Value] during a processing [Future].
   Stream<Value<T>> toValues({bool guarded = true}) => Value<T>.initial().fetch(
-        () async => Value<T>.success(await this),
+        () => this,
         guarded: guarded,
       );
 }

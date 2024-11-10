@@ -3,14 +3,15 @@ import 'package:value_state/value_state.dart';
 
 void main() {
   const myStr = 'My String';
-  const myError = 'Error';
+  const myError = 'Test Error';
+  final stackTrace = StackTrace.fromString('stackTraceString');
 
   group('test ValueExtensions', () {
     const initial = Value<String>.initial();
     final success = Value<String>.success(myStr);
 
-    final failure = Value<String>.failure(myError);
-    final failureWithData = success.toFailure(myError);
+    final failure = Value<String>.failure(myError, stackTrace: stackTrace);
+    final failureWithData = success.toFailure(myError, stackTrace: stackTrace);
 
     test('toSuccess', () {
       expect(initial.toSuccess(myStr), Value<String>.success(myStr));
@@ -34,17 +35,43 @@ void main() {
     });
 
     test('toFailure', () {
-      expect(initial.toFailure(myError), Value<String>.failure(myError));
-      expect(initial.toFailure(myError, isFetching: true),
-          Value<String>.failure(myError, isFetching: true));
+      expect(
+        initial.toFailure(
+          myError,
+          stackTrace: stackTrace,
+        ),
+        Value<String>.failure(myError, stackTrace: stackTrace),
+      );
+      expect(
+        initial.toFailure(
+          myError,
+          stackTrace: stackTrace,
+          isFetching: true,
+        ),
+        Value<String>.failure(
+          myError,
+          stackTrace: stackTrace,
+          isFetching: true,
+        ),
+      );
 
-      expect(failure.toFailure(myError), Value<String>.failure(myError));
-      expect(failure.toFailure(myError, isFetching: true),
-          Value<String>.failure(myError, isFetching: true));
+      expect(
+        failure.toFailure(myError, stackTrace: stackTrace),
+        Value<String>.failure(myError, stackTrace: stackTrace),
+      );
+      expect(
+        failure.toFailure(myError, stackTrace: stackTrace, isFetching: true),
+        Value<String>.failure(
+          myError,
+          stackTrace: stackTrace,
+          isFetching: true,
+        ),
+      );
 
       expect(
         failureWithData,
         isA<Value<String>>()
+            .having((value) => value.data, 'has data', failureWithData.data!)
             .having((value) => value.isFetching, 'is not fetching', false)
             .having((value) => value.isFailure, 'is failure', true)
             .having(
@@ -70,16 +97,18 @@ void main() {
   group('test Future.toValues', () {
     test('on success', () {
       expect(
-          Future.value(myStr).toValues(),
-          emitsInOrder([
-            const Value<String>.initial(isFetching: true),
-            Value<String>.success(myStr),
-            emitsDone,
-          ]));
+        Future.value(myStr).toValues(),
+        emitsInOrder([
+          const Value<String>.initial(isFetching: true),
+          Value<String>.success(myStr),
+          emitsDone,
+        ]),
+      );
     });
 
-    test('on failure', () {
-      expect(
+    group('on failure', () {
+      test('with guard', () {
+        expect(
           Future<String>(() => throw myError).toValues(),
           emitsInOrder([
             const Value<String>.initial(isFetching: true),
@@ -92,11 +121,12 @@ void main() {
                   myError,
                 ),
             emitsDone,
-          ]));
-    });
+          ]),
+        );
+      });
 
-    test('on failure without guard', () {
-      expect(
+      test('without guard', () {
+        expect(
           Future<String>(() => throw myError).toValues(guarded: false),
           emitsInOrder([
             const Value<String>.initial(isFetching: true),
@@ -108,8 +138,11 @@ void main() {
                   'failure content',
                   myError,
                 ),
+            emitsError(myError),
             emitsDone,
-          ]));
+          ]),
+        );
+      });
     });
   });
 }
