@@ -21,6 +21,14 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, isNull);
+      expect(
+        () => state.dataOrThrow,
+        throwsA(isA<ValueDataNotAvailableException>().having(
+          (e) => e.toString(),
+          'exception message',
+          'Exception: Data is not available on value',
+        )),
+      );
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -37,6 +45,10 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, isNull);
+      expect(
+        () => state.dataOrThrow,
+        throwsA(isA<ValueDataNotAvailableException>()),
+      );
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -53,6 +65,7 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
+      expect(state.dataOrThrow, value);
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -69,6 +82,7 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
+      expect(state.dataOrThrow, value);
       expect(state.error, null);
       expect(state.stackTrace, null);
     });
@@ -85,6 +99,7 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
+      expect(state.dataOrThrow, value);
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -101,6 +116,7 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, isNull);
+      expect(state.dataOrThrow, isNull);
       expect(state.error, isNull);
       expect(
         state.stackTrace,
@@ -120,6 +136,10 @@ void main() {
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isTrue);
       expect(state.data, isNull);
+      expect(
+        () => state.dataOrThrow,
+        throwsA(isA<ValueDataNotAvailableException>()),
+      );
       expect(state.error, error);
       expect(state.stackTrace, stackTrace);
     });
@@ -140,6 +160,10 @@ void main() {
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isTrue);
       expect(state.data, isNull);
+      expect(
+        () => state.dataOrThrow,
+        throwsA(isA<ValueDataNotAvailableException>()),
+      );
       expect(state.error, error);
       expect(state.stackTrace, stackTrace);
     });
@@ -156,6 +180,7 @@ void main() {
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
+      expect(state.dataOrThrow, value);
       expect(state.error, error);
       expect(state.stackTrace, isNull);
     });

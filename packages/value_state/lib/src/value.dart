@@ -1,3 +1,5 @@
+library value_state;
+
 /// A class that represents a value that can be in one of three states:
 /// * [ValueState.initial] - the initial state of the value.
 /// * [ValueState.success] - the state when the value is successfully fetched.
@@ -8,26 +10,42 @@ enum ValueState {
   failure,
 }
 
+class ValueDataNotAvailableException implements Exception {
+  const ValueDataNotAvailableException();
+
+  @override
+  String toString() => 'Exception: Data is not available on value';
+}
+
 /// A convinient class to handle different states of a value.
 /// The three states are enumerated in [ValueState].
 final class Value<T> with _PrettyPrintMixin {
   /// Create a value in the initial state.
-  const Value.initial({this.isFetching = false})
-      : _data = null,
-        _failure = null;
+  const Value.initial({bool isFetching = false})
+      : this._(
+          data: null,
+          failure: null,
+          isFetching: isFetching,
+        );
 
   /// Create a value in the success state.
-  Value.success(T data, {this.isFetching = false})
-      : _data = _Data<T>(data),
-        _failure = null;
+  Value.success(T data, {bool isFetching = false})
+      : this._(
+          data: _Data(data),
+          failure: null,
+          isFetching: isFetching,
+        );
 
   /// Create a value in the failure state.
   Value.failure(
     Object error, {
     StackTrace? stackTrace,
-    this.isFetching = false,
-  })  : _data = null,
-        _failure = _Failure(error, stackTrace: stackTrace);
+    bool isFetching = false,
+  }) : this._(
+          data: null,
+          failure: _Failure(error, stackTrace: stackTrace),
+          isFetching: isFetching,
+        );
 
   const Value._({
     required this.isFetching,
@@ -45,6 +63,13 @@ final class Value<T> with _PrettyPrintMixin {
 
   /// Get data if available, otherwise return null.
   T? get data => _data?.data;
+
+  /// Get data or throw an exception if data is not available.
+  /// It is useful when [T] is nullable.
+  T get dataOrThrow => switch (_data) {
+        _Data<T>(:final data) => data,
+        null => throw const ValueDataNotAvailableException(),
+      };
 
   /// Get error if available, otherwise return null.
   Object? get error => _failure?.error;
@@ -127,8 +152,8 @@ final class Value<T> with _PrettyPrintMixin {
 
 /// This class wraps a data object of type [T]. It provides a mechanism to:
 ///  * Handle nullable types safely.
-///  * Distinguish between a null value due to initialization ([ValueState.initial])
-///    and a null value assigned after initialization.
+///  * Distinguish between a null value due to initialization
+///    ([ValueState.initial]) and a null value assigned after initialization.
 final class _Data<T> with _PrettyPrintMixin {
   const _Data(this.data);
 

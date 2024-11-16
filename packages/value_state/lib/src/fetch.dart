@@ -1,3 +1,5 @@
+library value_state;
+
 import 'dart:async';
 
 import 'extensions.dart';
