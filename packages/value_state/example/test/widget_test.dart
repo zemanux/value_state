@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:value_state_example/main.dart';
+import 'package:value_state_example/main_cubit.dart';
 
 void main() {
   const incrementTextButton = 'Increment';

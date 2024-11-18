@@ -1,5 +1,7 @@
 library value_state;
 
+import 'package:meta/meta.dart';
+
 /// A class that represents a value that can be in one of three states:
 /// * [ValueState.initial] - the initial state of the value.
 /// * [ValueState.success] - the state when the value is successfully fetched.
@@ -28,7 +30,29 @@ final class Value<T> with _PrettyPrintMixin {
           isFetching: isFetching,
         );
 
+  /// Map a value to value with [data] and keep [Value.isFetching] if
+  /// [isFetching] is `null`.
+  Value<T> toSuccess(T data, {bool? isFetching}) => merge(
+        Value.success(data, isFetching: false),
+        mapData: (from) => data,
+        isFetching: isFetching,
+      );
+
+  /// Map a value to failure with actual [data] if any and [Value.isFetching]
+  /// if [isFetching] is null.
+  Value<T> toFailure(
+    Object error, {
+    StackTrace? stackTrace,
+    bool? isFetching,
+  }) =>
+      merge(
+        Value.failure(error, stackTrace: stackTrace, isFetching: false),
+        isFetching: isFetching,
+      );
+
   /// Create a value in the success state.
+  /// This is only for tests purpose.
+  @visibleForTesting
   Value.success(T data, {bool isFetching = false})
       : this._(
           data: _Data(data),
@@ -37,6 +61,8 @@ final class Value<T> with _PrettyPrintMixin {
         );
 
   /// Create a value in the failure state.
+  /// This is only for tests purpose.
+  @visibleForTesting
   Value.failure(
     Object error, {
     StackTrace? stackTrace,
@@ -91,6 +117,9 @@ final class Value<T> with _PrettyPrintMixin {
   /// Check if the value is in the initial state.
   bool get isInitial => state == ValueState.initial;
 
+  /// Check if value has already been fetched (success or failure).
+  bool get hasBeenFetched => !isInitial;
+
   /// Check if the value is in the success state.
   /// If the generic type T is nullable, isScuccess will return true if the
   /// data is null.
@@ -99,8 +128,11 @@ final class Value<T> with _PrettyPrintMixin {
   /// Check if the value is in the failure state.
   bool get isFailure => state == ValueState.failure;
 
-  /// Check if the value has data. It is a bit different of [isSuccess].
-  /// In [ValueState.failure] can have data (from previous state).
+  /// Check if the value has data. It is a bit different of [hasBeenFetched] and
+  /// [isSuccess].
+  /// If [T] is nullable and fetched [data] is null, it returns false. If you
+  /// want to verify if data is available (fetched), use [hasBeenFetched].
+  /// [ValueState.failure] can have data (from previous state).
   bool get hasData => _data != null;
 
   /// Check if the value has error (available only in
@@ -115,7 +147,7 @@ final class Value<T> with _PrettyPrintMixin {
   /// a previous fetch state ([ValueState.success] or [ValueState.failure]).
   bool get isRefreshing => !isInitial && isFetching;
 
-  /// Merge two values with different type. It is intendended to facilitate
+  /// Merge two values with different type. It is intendend to facilitate
   /// mapping of a data from a value to another without handling [state],
   /// [isFetching] and [error]/[stackTrace].
   Value<T> merge<F>(

@@ -13,6 +13,7 @@ void main() {
       final state = Value<int>.initial();
 
       expect(state.isInitial, isTrue);
+      expect(state.hasBeenFetched, isFalse);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -37,6 +38,7 @@ void main() {
       final state = Value<int>.initial(isFetching: true);
 
       expect(state.isInitial, isTrue);
+      expect(state.hasBeenFetched, isFalse);
       expect(state.isFetching, isTrue);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -57,6 +59,7 @@ void main() {
       final state = Value.success(value);
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isTrue);
@@ -74,6 +77,7 @@ void main() {
       final state = Value.success(value);
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isTrue);
@@ -91,6 +95,7 @@ void main() {
       final state = Value.success(value, isFetching: true);
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isTrue);
       expect(state.isRefreshing, isTrue);
       expect(state.isFetching, isTrue);
@@ -108,6 +113,7 @@ void main() {
       final state = Value<int?>.success(null);
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isTrue);
@@ -128,6 +134,7 @@ void main() {
       final state = Value<int>.failure(error, stackTrace: stackTrace);
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -152,6 +159,7 @@ void main() {
       );
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isTrue);
       expect(state.isRefreshing, isTrue);
       expect(state.isSuccess, isFalse);
@@ -172,6 +180,7 @@ void main() {
       final state = Value.success(value).toFailure(error);
 
       expect(state.isInitial, isFalse);
+      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -183,6 +192,96 @@ void main() {
       expect(state.dataOrThrow, value);
       expect(state.error, error);
       expect(state.stackTrace, isNull);
+    });
+  });
+
+  group('Value mappers', () {
+    const myStr = 'My String';
+    const myError = 'Test Error';
+    const initial = Value<String>.initial();
+    final success = Value<String>.success(myStr);
+
+    final failure = Value<String>.failure(myError, stackTrace: stackTrace);
+    final failureWithData = success.toFailure(myError, stackTrace: stackTrace);
+
+    test('toSuccess', () {
+      expect(initial.toSuccess(myStr), Value<String>.success(myStr));
+      expect(initial.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
+      expect(initial.toFailure(myError), Value<String>.failure(myError));
+      expect(initial.toFailure(myError, isFetching: true),
+          Value<String>.failure(myError, isFetching: true));
+
+      expect(success.toSuccess(myStr), Value<String>.success(myStr));
+      expect(success.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
+
+      expect(failure.toSuccess(myStr), Value<String>.success(myStr));
+      expect(failure.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
+
+      expect(failureWithData.toSuccess(myStr), Value<String>.success(myStr));
+      expect(failureWithData.toSuccess(myStr, isFetching: true),
+          Value<String>.success(myStr, isFetching: true));
+    });
+
+    test('toFailure', () {
+      expect(
+        initial.toFailure(
+          myError,
+          stackTrace: stackTrace,
+        ),
+        Value<String>.failure(myError, stackTrace: stackTrace),
+      );
+      expect(
+        initial.toFailure(
+          myError,
+          stackTrace: stackTrace,
+          isFetching: true,
+        ),
+        Value<String>.failure(
+          myError,
+          stackTrace: stackTrace,
+          isFetching: true,
+        ),
+      );
+
+      expect(
+        failure.toFailure(myError, stackTrace: stackTrace),
+        Value<String>.failure(myError, stackTrace: stackTrace),
+      );
+      expect(
+        failure.toFailure(myError, stackTrace: stackTrace, isFetching: true),
+        Value<String>.failure(
+          myError,
+          stackTrace: stackTrace,
+          isFetching: true,
+        ),
+      );
+
+      expect(
+        failureWithData,
+        isA<Value<String>>()
+            .having((value) => value.data, 'has data', failureWithData.data!)
+            .having((value) => value.isFetching, 'is not fetching', false)
+            .having((value) => value.isFailure, 'is failure', true)
+            .having(
+              (value) => value.error,
+              'failure content',
+              myError,
+            ),
+      );
+      expect(
+        success.toFailure(myError, isFetching: true),
+        isA<Value<String>>()
+            .having((value) => value.isFetching, 'is fetching', true)
+            .having((value) => value.isFailure, 'is failure', true)
+            .having(
+              (value) => value.error,
+              'failure content',
+              myError,
+            ),
+      );
     });
   });
 

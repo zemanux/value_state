@@ -5,7 +5,7 @@ class CounterCubit extends Cubit<Value<int>> {
   var _value = 0;
   Future<int> _getMyValueFromRepository() async => _value++;
 
-  CounterCubit() : super(Value.success(0)) {
+  CounterCubit() : super(const Value.initial()) {
     increment();
   }
 

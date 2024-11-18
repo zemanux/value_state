@@ -4,26 +4,6 @@ import 'fetch.dart';
 import 'value.dart';
 
 extension ValueExtensions<T> on Value<T> {
-  /// Map a value to value with [data] and keep [Value.isFetching] if
-  /// [isFetching] is `null`.
-  Value<T> toSuccess(T data, {bool? isFetching}) => merge(
-        Value.success(data),
-        mapData: (from) => data,
-        isFetching: isFetching,
-      );
-
-  /// Map a value to failure with actual [data] if any and [Value.isFetching]
-  /// if [isFetching] is null.
-  Value<T> toFailure(
-    Object error, {
-    StackTrace? stackTrace,
-    bool? isFetching,
-  }) =>
-      merge(
-        Value.failure(error, stackTrace: stackTrace),
-        isFetching: isFetching,
-      );
-
   /// Copy the actual object with fetching as [isFetching].
   Value<T> copyWithFetching(bool isFetching) =>
       merge(this, isFetching: isFetching);

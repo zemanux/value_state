@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
+import 'package:value_state_example/widgets/default_error.dart';
 
-import 'logic/notifier.dart';
+import 'logic/cubit.dart';
 import 'widgets/action_button.dart';
 import 'widgets/app_root.dart';
-import 'widgets/default_error.dart';
 import 'widgets/formatted_column.dart';
 import 'widgets/loader.dart';
 
@@ -19,18 +20,16 @@ class MyApp extends StatelessWidget {
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) => const AppRoot(child: MyHomePage());
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => CounterCubit(),
+      child: const AppRoot(child: MyHomePage()),
+    );
+  }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final _notifier = CounterNotifier();
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +37,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // problematic. In this case, when an error is raised after a value has
     // been successfully fetched, we can see the error and the last value
     // fetched both displayed.
-    return ValueListenableBuilder(
-      valueListenable: _notifier,
-      builder: (context, state, _) {
+    return BlocBuilder<CounterCubit, Value<int>>(
+      builder: (context, state) {
         if (state.isInitial) return const Loader();
 
         return FormattedColumn(children: [
@@ -48,7 +46,9 @@ class _MyHomePageState extends State<MyHomePage> {
           if (state case Value(:final error?)) DefaultError(error: error),
           if (state case Value(:final data?)) Text('Counter value : $data'),
           ActionButton(
-            onPressed: state.isRefreshing ? null : _notifier.increment,
+            onPressed: state.isRefreshing
+                ? null
+                : context.read<CounterCubit>().increment,
           ),
         ]);
       },
