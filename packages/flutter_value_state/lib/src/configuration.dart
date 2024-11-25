@@ -1,10 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:value_state/value_state.dart';
 
-Widget _defaultBuilder<T extends Object>(BuildContext context, Value<T> state) =>
+Widget _defaultBuilder<T extends Object>(
+        BuildContext context, Value<T> state) =>
     const SizedBox.shrink();
 
-Widget _defaultWrapper<T extends Object>(BuildContext context, Value<T> state, Widget child) =>
+Widget _defaultWrapper<T extends Object>(
+        BuildContext context, Value<T> state, Widget child) =>
     child;
 
 typedef OnValueStateWaiting<T extends Object> = Widget Function(

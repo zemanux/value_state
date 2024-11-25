@@ -151,27 +151,6 @@ void main() {
     final failure = Value<String>.failure(myError, stackTrace: stackTrace);
     final failureWithData = success.toFailure(myError, stackTrace: stackTrace);
 
-    test('toSuccess', () {
-      expect(initial.toSuccess(myStr), Value<String>.success(myStr));
-      expect(initial.toSuccess(myStr, isFetching: true),
-          Value<String>.success(myStr, isFetching: true));
-      expect(initial.toFailure(myError), Value<String>.failure(myError));
-      expect(initial.toFailure(myError, isFetching: true),
-          Value<String>.failure(myError, isFetching: true));
-
-      expect(success.toSuccess(myStr), Value<String>.success(myStr));
-      expect(success.toSuccess(myStr, isFetching: true),
-          Value<String>.success(myStr, isFetching: true));
-
-      expect(failure.toSuccess(myStr), Value<String>.success(myStr));
-      expect(failure.toSuccess(myStr, isFetching: true),
-          Value<String>.success(myStr, isFetching: true));
-
-      expect(failureWithData.toSuccess(myStr), Value<String>.success(myStr));
-      expect(failureWithData.toSuccess(myStr, isFetching: true),
-          Value<String>.success(myStr, isFetching: true));
-    });
-
     test('toFailure', () {
       expect(
         initial.toFailure(

@@ -66,7 +66,7 @@ extension ValueStateFetchExtensions<T extends Object> on Value<T> {
         controller.add(value);
       },
       action: (value, emit) => stream.forEach(
-        (data) => emit(lastValue.toSuccess(data)),
+        (data) => emit(Value.success(data)),
       ),
     ).onError((error, stackTrace) {
       if (error != null && !guarded) {

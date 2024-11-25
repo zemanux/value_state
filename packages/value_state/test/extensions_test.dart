@@ -13,7 +13,7 @@ void main() {
         Future.value(myStr).toValues(),
         emitsInOrder([
           const Value<String>.initial(isFetching: true),
-          Value<String>.success(myStr),
+          const Value<String>.success(myStr),
           emitsDone,
         ]),
       );
@@ -66,16 +66,16 @@ void main() {
     });
 
     test('on success', () {
-      expect(Value.success(myStr).when(success: (data) => data), myStr);
+      expect(const Value.success(myStr).when(success: (data) => data), myStr);
     });
 
     test('on data', () {
-      expect(Value.success(myStr).when(data: (data) => data), myStr);
+      expect(const Value.success(myStr).when(data: (data) => data), myStr);
     });
 
     test('on data with error', () {
       expect(
-          Value.success(myStr).toFailure(myError).when(
+          const Value.success(myStr).toFailure(myError).when(
                 data: (data) => data,
                 failure: (error) => myError,
               ),

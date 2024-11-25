@@ -4,9 +4,7 @@ import 'fetch.dart';
 import 'value.dart';
 
 extension ValueExtensions<T extends Object> on Value<T> {
-  /// Copy the actual object with fetching as [isFetching].
-  Value<T> copyWithFetching(bool isFetching) =>
-      merge(this, isFetching: isFetching);
+
 
   /// Convinient way to execute or map a value depending on the [Value.state] of
   /// this value.

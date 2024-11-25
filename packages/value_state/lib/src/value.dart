@@ -14,6 +14,9 @@ enum ValueState {
 
 /// A convinient class to handle different states of a value.
 /// The three states are enumerated in [ValueState].
+///
+/// [T] cannot be `null`. If you need a nullable value, use an `Optinal` class
+/// pattern as type.
 final class Value<T extends Object> with _PrettyPrintMixin {
   /// Create a value in the initial state.
   const Value.initial({bool isFetching = false})
@@ -23,35 +26,26 @@ final class Value<T extends Object> with _PrettyPrintMixin {
           isFetching: isFetching,
         );
 
-  /// Map a value to value with [data] and keep [Value.isFetching] if
-  /// [isFetching] is `null`.
-  Value<T> toSuccess(T data, {bool? isFetching}) => merge(
-        Value.success(data, isFetching: false),
-        mapData: (from) => data,
-        isFetching: isFetching,
-      );
-
-  /// Map a value to failure with actual [data] if any and [Value.isFetching]
-  /// if [isFetching] is null.
-  Value<T> toFailure(
-    Object error, {
-    StackTrace? stackTrace,
-    bool? isFetching,
-  }) =>
-      merge(
-        Value.failure(error, stackTrace: stackTrace, isFetching: false),
-        isFetching: isFetching,
-      );
-
-  /// Create a value in the success state.
-  /// This is only for tests purpose.
-  @visibleForTesting
-  Value.success(T data, {bool isFetching = false})
+  /// Create a value in the success state with [data].
+  const Value.success(T data, {bool isFetching = false})
       : this._(
           data: data,
           failure: null,
           isFetching: isFetching,
         );
+
+  /// Map a value to `failure` with actual [data] if any and keep
+  /// [Value.isFetching] if [isFetching] is null.
+  Value<T> toFailure(
+    Object error, {
+    StackTrace? stackTrace,
+    bool isFetching = false,
+  }) =>
+      Value._(
+        data: data,
+        failure: _Failure(error, stackTrace: stackTrace),
+        isFetching: isFetching,
+      );
 
   /// Create a value in the failure state.
   /// This is only for tests purpose.
@@ -79,7 +73,7 @@ final class Value<T extends Object> with _PrettyPrintMixin {
 
   /// Get data if available, otherwise return null.
   final T? data;
-  
+
   final _Failure? _failure;
 
   /// Get error if available, otherwise return null.
@@ -126,18 +120,24 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   /// a previous fetch state ([ValueState.success] or [ValueState.failure]).
   bool get isRefreshing => !isInitial && isFetching;
 
+  /// Copy the actual object with fetching as [isFetching].
+  Value<T> copyWithFetching(bool isFetching) => Value._(
+        data: data,
+        failure: _failure,
+        isFetching: isFetching,
+      );
+
   /// Merge two values with different type. It is intendend to facilitate
-  /// mapping of a data from a value to another without handling [state],
-  /// [isFetching] and [error]/[stackTrace].
+  /// mapping of a data from a value to another without handling [Value.state],
+  /// [Value.isFetching] and [Value.error]/[Value.stackTrace].
   Value<T> merge<F extends Object>(
     Value<F> from, {
     T Function(Value<F> from)? mapData,
-    bool? isFetching,
   }) =>
       Value<T>._(
         data: mapData != null ? mapData(from) : this.data,
         failure: from._failure,
-        isFetching: isFetching ?? from.isFetching,
+        isFetching: from.isFetching,
       );
 
   @override

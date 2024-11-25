@@ -141,7 +141,7 @@ void main() {
 
   group('without configuration', () {
     testWidgets('buildWidget with ${Value<int>}', (tester) async {
-      await tester.pumpWidget(_TestWidget(state: Value.success(1)));
+      await tester.pumpWidget(const _TestWidget(state: Value.success(1)));
 
       expect(find.byKey(_buildWidgetKey), findsOneWidget);
       expect(find.byType(_defaultWidgetType), findsOneWidget);
@@ -149,7 +149,7 @@ void main() {
 
     testWidgets('buildWidget without parameter with ${Value<int>}',
         (tester) async {
-      await tester.pumpWidget(Value.success(1).buildWidget());
+      await tester.pumpWidget(const Value.success(1).buildWidget());
 
       expect(find.byKey(_buildWidgetKey), findsNothing);
       expect(find.byType(_defaultWidgetType), findsOneWidget);
@@ -158,7 +158,7 @@ void main() {
     for (final state in <Value<int>>[
       const Value.initial(),
       const Value.initial(isFetching: true),
-      Value.success(1),
+      const Value.success(1),
       Value.failure('Error', isFetching: false)
     ]) {
       testWidgets('defaultBuilder with ${state.runtimeType}', (tester) async {
@@ -185,7 +185,7 @@ void main() {
     for (final state in <Value<int>>[
       const Value.initial(),
       const Value.initial(isFetching: true),
-      Value.success(1),
+      const Value.success(1),
       Value.failure('Error', isFetching: false)
     ]) {
       testWidgets('defaultBuilder with ${state.runtimeType}', (tester) async {
@@ -201,7 +201,7 @@ void main() {
     testWidgets('should get ValueStateConfigurationData', (tester) async {
       late ValueBuilderConfigurationData valueStateConfigurationData;
       await tester.pumpWidget(_TestConfigurationWidget(
-          state: Value.success(1),
+          state: const Value.success(1),
           child: Builder(builder: (context) {
             valueStateConfigurationData = ValueBuilderConfiguration.of(context);
             return const SizedBox.shrink();
@@ -216,7 +216,7 @@ void main() {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: Value.success(1),
+        state: const Value.success(1),
       ));
 
       expect(find.byKey(_buildWidgetKey), findsOneWidget);
@@ -233,9 +233,10 @@ void main() {
     for (final state in <Value<int>, Key>{
       const Value.initial(): _waitingWidgetKey,
       const Value.initial(isFetching: true): _waitingWidgetKey,
-      Value.success(1): _buildWidgetKey,
+      const Value.success(1): _buildWidgetKey,
       Value.failure('Error', isFetching: false): _errorWidgetKey,
-      Value.success(0).toFailure('Error', isFetching: true): _errorWidgetKey,
+      const Value.success(0).toFailure('Error', isFetching: true):
+          _errorWidgetKey,
     }.entries) {
       testWidgets('build with ${state.key.runtimeType}', (tester) async {
         await tester.pumpWidget(_TestConfigurationWidget(state: state.key));
@@ -261,7 +262,7 @@ void main() {
     for (final state in <Value<int>, Key>{
       const Value.initial(): _waitingWidgetKey,
       const Value.initial(isFetching: true): _waitingWidgetKey,
-      Value.success(1): _noValueWidgetKey,
+      const Value.success(1): _noValueWidgetKey,
       Value.failure('Error', isFetching: false): _errorWidgetKey,
     }.entries) {
       const wrapperKey = Key('innerWrapperWidget');
@@ -312,7 +313,7 @@ void main() {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: Value.success(1).toFailure(
+        state: const Value.success(1).toFailure(
           'Error',
           isFetching: false,
         ),
@@ -328,7 +329,7 @@ void main() {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: Value.success(1).toFailure(
+        state: const Value.success(1).toFailure(
           'Error',
           isFetching: false,
         ),
@@ -354,7 +355,7 @@ void main() {
       final testKey = GlobalKey<_TestConfigurationWidgetState>();
       await tester.pumpWidget(_TestConfigurationWidget(
         key: testKey,
-        state: Value.success(1).toFailure(
+        state: const Value.success(1).toFailure(
           'Error',
           isFetching: false,
         ),
