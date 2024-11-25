@@ -2,11 +2,11 @@ library value_state;
 
 import 'dart:async';
 
-import 'extensions.dart';
-import 'value.dart';
+import 'package:value_state/value_state.dart';
 
-typedef FetchOnValueEmitter<T> = FutureOr<void> Function(Value<T> value);
-typedef FetchOnValueAction<T, R> = FutureOr<R> Function(
+typedef FetchOnValueEmitter<T extends Object> = FutureOr<void> Function(
+    Value<T> value);
+typedef FetchOnValueAction<T extends Object, R> = FutureOr<R> Function(
   Value<T> value,
   FetchOnValueEmitter<T> emitter,
 );
@@ -17,7 +17,7 @@ typedef FetchOnValueAction<T, R> = FutureOr<R> Function(
 /// If [errorAsValue] is `true` and [action] raise an exception then an
 /// [Value._failure] is emitted. if `false`, nothing is emitted. The exception
 /// is always rethrown by [fetchOnValue] to be handled by the caller.
-Future<R> fetchOnValue<T, R>({
+Future<R> fetchOnValue<T extends Object, R>({
   required Value<T> Function() value,
   required FetchOnValueEmitter<T> emitter,
   required FetchOnValueAction<T, R> action,
@@ -47,7 +47,7 @@ Future<R> fetchOnValue<T, R>({
   }
 }
 
-extension ValueStateFetchExtensions<T> on Value<T> {
+extension ValueStateFetchExtensions<T extends Object> on Value<T> {
   Stream<Value<T>> fetch(
     Future<T> Function() action, {
     bool guarded = true,

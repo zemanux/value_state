@@ -30,10 +30,10 @@ class _TestWidget<T extends Value<int>> extends StatelessWidget {
 
   final Widget? child;
 
-  final OnValueStateWaiting<dynamic>? onWaiting;
-  final OnValueStateError<dynamic>? onError;
-  final OnValueStateDefault<dynamic>? onDefault;
-  final OnValueStateWrapper<dynamic>? wrapper;
+  final OnValueStateWaiting<Object>? onWaiting;
+  final OnValueStateError<Object>? onError;
+  final OnValueStateDefault<Object>? onDefault;
+  final OnValueStateWrapper<Object>? wrapper;
 
   final bool wrapped;
   final bool onValueEnabled;
@@ -80,10 +80,10 @@ class _TestConfigurationWidget<T extends Value<int>> extends StatefulWidget {
 
   final Widget? child;
 
-  final OnValueStateWaiting<dynamic>? onWaiting;
-  final OnValueStateError<dynamic>? onError;
-  final OnValueStateDefault<dynamic>? onDefault;
-  final OnValueStateWrapper<dynamic>? wrapper;
+  final OnValueStateWaiting<Object>? onWaiting;
+  final OnValueStateError<Object>? onError;
+  final OnValueStateDefault<Object>? onDefault;
+  final OnValueStateWrapper<Object>? wrapper;
 
   final bool wrapped;
   final bool onValueEnabled;

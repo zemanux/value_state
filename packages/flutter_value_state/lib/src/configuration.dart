@@ -1,22 +1,22 @@
 import 'package:flutter/widgets.dart';
 import 'package:value_state/value_state.dart';
 
-Widget _defaultBuilder<T>(BuildContext context, Value<T> state) =>
+Widget _defaultBuilder<T extends Object>(BuildContext context, Value<T> state) =>
     const SizedBox.shrink();
 
-Widget _defaultWrapper<T>(BuildContext context, Value<T> state, Widget child) =>
+Widget _defaultWrapper<T extends Object>(BuildContext context, Value<T> state, Widget child) =>
     child;
 
-typedef OnValueStateWaiting<T> = Widget Function(
+typedef OnValueStateWaiting<T extends Object> = Widget Function(
     BuildContext context, Value<T> state);
 
-typedef OnValueStateWithValue<T> = Widget Function(
+typedef OnValueStateWithValue<T extends Object> = Widget Function(
     BuildContext context, Value<T> state, Widget? error);
-typedef OnValueStateError<T> = Widget Function(
+typedef OnValueStateError<T extends Object> = Widget Function(
     BuildContext context, Value<T> state);
-typedef OnValueStateDefault<T> = Widget Function(
+typedef OnValueStateDefault<T extends Object> = Widget Function(
     BuildContext context, Value<T> state);
-typedef OnValueStateWrapper<T> = Widget Function(
+typedef OnValueStateWrapper<T extends Object> = Widget Function(
     BuildContext context, Value<T> state, Widget child);
 
 /// Define default behavior for the states init, success and error.

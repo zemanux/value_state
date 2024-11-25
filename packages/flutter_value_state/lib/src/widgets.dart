@@ -9,7 +9,7 @@ extension StateConfigurationExtensions on BuildContext {
       const ValueBuilderConfigurationData();
 }
 
-extension ValueStateBuilderExtension<T> on Value<T> {
+extension ValueStateBuilderExtension<T extends Object> on Value<T> {
   Widget buildWidget({
     Key? key,
     OnValueStateWithValue<T>? onValue,
@@ -32,7 +32,7 @@ extension ValueStateBuilderExtension<T> on Value<T> {
       );
 }
 
-class ValueStateWidget<T> extends StatelessWidget {
+class ValueStateWidget<T extends Object> extends StatelessWidget {
   const ValueStateWidget({
     required this.state,
     this.onWithValue,

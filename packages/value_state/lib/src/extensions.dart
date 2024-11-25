@@ -3,7 +3,7 @@ library value_state;
 import 'fetch.dart';
 import 'value.dart';
 
-extension ValueExtensions<T> on Value<T> {
+extension ValueExtensions<T extends Object> on Value<T> {
   /// Copy the actual object with fetching as [isFetching].
   Value<T> copyWithFetching(bool isFetching) =>
       merge(this, isFetching: isFetching);
@@ -29,9 +29,9 @@ extension ValueExtensions<T> on Value<T> {
   }) =>
       switch (this) {
         Value<T>(isInitial: true) when initial != null => initial(),
-        Value<T>(isSuccess: true) when success != null => success(dataOrThrow),
-        Value<T>(hasData: true, :final dataOrThrow) when data != null =>
-          data(dataOrThrow),
+        Value<T>(isSuccess: true, :final data?) when success != null =>
+          success(data),
+        Value<T>(data: final dataOfThis?) when data != null => data(dataOfThis),
         Value<T>(isFailure: true, :final error?) when failure != null =>
           failure(error),
         _ when orElse != null => orElse(),
@@ -39,7 +39,7 @@ extension ValueExtensions<T> on Value<T> {
       };
 }
 
-extension FutureValueStateExtension<T> on Future<T> {
+extension FutureValueStateExtension<T extends Object> on Future<T> {
   /// Generate a stream of [Value] during a processing [Future].
   Stream<Value<T>> toValues({bool guarded = true}) => Value<T>.initial().fetch(
         () => this,

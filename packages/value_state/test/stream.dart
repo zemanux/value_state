@@ -6,12 +6,9 @@ import 'package:value_state/value_state.dart';
 
 class CounterStream {
   var _value = 0;
-  Future<int?> _getMyValueFromRepository() async {
+  Future<int> _getMyValueFromRepository() async {
     final value = _value++;
     switch (value) {
-      case 2:
-        return null;
-
       case 3:
       case 4:
       case 6:
@@ -21,17 +18,17 @@ class CounterStream {
     }
   }
 
-  Value<int?> state = const Value.initial();
+  Value<int> state = const Value.initial();
 
-  final _resultStreamController = StreamController<Value<int?>>();
-  Stream<Value<int?>> get stream => Stream.value(state)
+  final _resultStreamController = StreamController<Value<int>>();
+  Stream<Value<int>> get stream => Stream.value(state)
       .followedBy(_resultStreamController.stream)
       .handleError((_) {});
 
   var errorsRaisedCount = 0;
 
   Future<void> incrementValue() async {
-    await fetchOnValue<int?, void>(
+    await fetchOnValue<int, void>(
         value: () => state,
         emitter: (state) {
           this.state = state;

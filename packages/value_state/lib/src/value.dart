@@ -12,16 +12,9 @@ enum ValueState {
   failure,
 }
 
-class ValueDataNotAvailableException implements Exception {
-  const ValueDataNotAvailableException();
-
-  @override
-  String toString() => 'Exception: Data is not available on value';
-}
-
 /// A convinient class to handle different states of a value.
 /// The three states are enumerated in [ValueState].
-final class Value<T> with _PrettyPrintMixin {
+final class Value<T extends Object> with _PrettyPrintMixin {
   /// Create a value in the initial state.
   const Value.initial({bool isFetching = false})
       : this._(
@@ -55,7 +48,7 @@ final class Value<T> with _PrettyPrintMixin {
   @visibleForTesting
   Value.success(T data, {bool isFetching = false})
       : this._(
-          data: _Data(data),
+          data: data,
           failure: null,
           isFetching: isFetching,
         );
@@ -75,27 +68,19 @@ final class Value<T> with _PrettyPrintMixin {
 
   const Value._({
     required this.isFetching,
-    required _Data<T>? data,
+    required this.data,
     required _Failure? failure,
-  })  : _data = data,
-        _failure = failure;
+  }) : _failure = failure;
 
   /// A new value state will be available. It can start fron
   /// [ValueState.initial] or a previous [ValueState.success] or
   /// [ValueState.failure].
   final bool isFetching;
-  final _Data<T>? _data;
-  final _Failure? _failure;
 
   /// Get data if available, otherwise return null.
-  T? get data => _data?.data;
-
-  /// Get data or throw an exception if data is not available.
-  /// It is useful when [T] is nullable.
-  T get dataOrThrow => switch (_data) {
-        _Data<T>(:final data) => data,
-        null => throw const ValueDataNotAvailableException(),
-      };
+  final T? data;
+  
+  final _Failure? _failure;
 
   /// Get error if available, otherwise return null.
   Object? get error => _failure?.error;
@@ -107,7 +92,7 @@ final class Value<T> with _PrettyPrintMixin {
   ValueState get state {
     if (_failure != null) {
       return ValueState.failure;
-    } else if (_data != null) {
+    } else if (data != null) {
       return ValueState.success;
     } else {
       return ValueState.initial;
@@ -117,9 +102,6 @@ final class Value<T> with _PrettyPrintMixin {
   /// Check if the value is in the initial state.
   bool get isInitial => state == ValueState.initial;
 
-  /// Check if value has already been fetched (success or failure).
-  bool get hasBeenFetched => !isInitial;
-
   /// Check if the value is in the success state.
   /// If the generic type T is nullable, isScuccess will return true if the
   /// data is null.
@@ -128,12 +110,9 @@ final class Value<T> with _PrettyPrintMixin {
   /// Check if the value is in the failure state.
   bool get isFailure => state == ValueState.failure;
 
-  /// Check if the value has data. It is a bit different of [hasBeenFetched] and
-  /// [isSuccess].
-  /// If [T] is nullable and fetched [data] is null, it returns false. If you
-  /// want to verify if data is available (fetched), use [hasBeenFetched].
+  /// Check if the value has data. It is a bit different of [isSuccess] because
   /// [ValueState.failure] can have data (from previous state).
-  bool get hasData => _data != null;
+  bool get hasData => data != null;
 
   /// Check if the value has error (available only in
   /// [ValueState.failure]).
@@ -150,13 +129,13 @@ final class Value<T> with _PrettyPrintMixin {
   /// Merge two values with different type. It is intendend to facilitate
   /// mapping of a data from a value to another without handling [state],
   /// [isFetching] and [error]/[stackTrace].
-  Value<T> merge<F>(
+  Value<T> merge<F extends Object>(
     Value<F> from, {
     T Function(Value<F> from)? mapData,
     bool? isFetching,
   }) =>
       Value<T>._(
-        data: mapData != null ? _Data(mapData(from)) : this._data,
+        data: mapData != null ? mapData(from) : this.data,
         failure: from._failure,
         isFetching: isFetching ?? from.isFetching,
       );
@@ -167,43 +146,18 @@ final class Value<T> with _PrettyPrintMixin {
       runtimeType == other.runtimeType &&
           other is Value<T> &&
           isFetching == other.isFetching &&
-          _data == other._data &&
+          data == other.data &&
           _failure == other._failure;
 
   @override
-  int get hashCode => Object.hash(_data, _failure, isFetching);
+  int get hashCode => Object.hash(data, _failure, isFetching);
 
   @override
   Map<String, dynamic> get _attributes => {
         'state': state,
         'isFetching': isFetching,
-        ...?_data?._attributes,
+        if (data != null) 'data': data,
         ...?_failure?._attributes,
-      };
-}
-
-/// This class wraps a data object of type [T]. It provides a mechanism to:
-///  * Handle nullable types safely.
-///  * Distinguish between a null value due to initialization
-///    ([ValueState.initial]) and a null value assigned after initialization.
-final class _Data<T> with _PrettyPrintMixin {
-  const _Data(this.data);
-
-  final T data;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      runtimeType == other.runtimeType &&
-          other is _Data<T> &&
-          data == other.data;
-
-  @override
-  int get hashCode => data.hashCode;
-
-  @override
-  Map<String, dynamic> get _attributes => {
-        'data': data,
       };
 }
 

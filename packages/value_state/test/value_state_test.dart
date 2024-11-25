@@ -13,7 +13,6 @@ void main() {
       final state = Value<int>.initial();
 
       expect(state.isInitial, isTrue);
-      expect(state.hasBeenFetched, isFalse);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -22,14 +21,6 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, isNull);
-      expect(
-        () => state.dataOrThrow,
-        throwsA(isA<ValueDataNotAvailableException>().having(
-          (e) => e.toString(),
-          'exception message',
-          'Exception: Data is not available on value',
-        )),
-      );
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -38,7 +29,6 @@ void main() {
       final state = Value<int>.initial(isFetching: true);
 
       expect(state.isInitial, isTrue);
-      expect(state.hasBeenFetched, isFalse);
       expect(state.isFetching, isTrue);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -47,10 +37,6 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, isNull);
-      expect(
-        () => state.dataOrThrow,
-        throwsA(isA<ValueDataNotAvailableException>()),
-      );
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -59,7 +45,6 @@ void main() {
       final state = Value.success(value);
 
       expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isTrue);
@@ -68,7 +53,6 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
-      expect(state.dataOrThrow, value);
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
@@ -77,7 +61,6 @@ void main() {
       final state = Value.success(value);
 
       expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isTrue);
@@ -86,7 +69,6 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
-      expect(state.dataOrThrow, value);
       expect(state.error, null);
       expect(state.stackTrace, null);
     });
@@ -95,7 +77,6 @@ void main() {
       final state = Value.success(value, isFetching: true);
 
       expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isTrue);
       expect(state.isRefreshing, isTrue);
       expect(state.isFetching, isTrue);
@@ -104,37 +85,14 @@ void main() {
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
-      expect(state.dataOrThrow, value);
       expect(state.error, isNull);
       expect(state.stackTrace, isNull);
-    });
-
-    test('success state with null data', () {
-      final state = Value<int?>.success(null);
-
-      expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
-      expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
-      expect(state.isSuccess, isTrue);
-      expect(state.isFailure, isFalse);
-      expect(state.hasData, isTrue);
-      expect(state.hasError, isFalse);
-      expect(state.hasStackTrace, isFalse);
-      expect(state.data, isNull);
-      expect(state.dataOrThrow, isNull);
-      expect(state.error, isNull);
-      expect(
-        state.stackTrace,
-        null,
-      );
     });
 
     test('failure state', () {
       final state = Value<int>.failure(error, stackTrace: stackTrace);
 
       expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -143,10 +101,6 @@ void main() {
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isTrue);
       expect(state.data, isNull);
-      expect(
-        () => state.dataOrThrow,
-        throwsA(isA<ValueDataNotAvailableException>()),
-      );
       expect(state.error, error);
       expect(state.stackTrace, stackTrace);
     });
@@ -159,7 +113,6 @@ void main() {
       );
 
       expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isTrue);
       expect(state.isRefreshing, isTrue);
       expect(state.isSuccess, isFalse);
@@ -168,10 +121,6 @@ void main() {
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isTrue);
       expect(state.data, isNull);
-      expect(
-        () => state.dataOrThrow,
-        throwsA(isA<ValueDataNotAvailableException>()),
-      );
       expect(state.error, error);
       expect(state.stackTrace, stackTrace);
     });
@@ -180,7 +129,6 @@ void main() {
       final state = Value.success(value).toFailure(error);
 
       expect(state.isInitial, isFalse);
-      expect(state.hasBeenFetched, isTrue);
       expect(state.isFetching, isFalse);
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
@@ -189,7 +137,6 @@ void main() {
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
-      expect(state.dataOrThrow, value);
       expect(state.error, error);
       expect(state.stackTrace, isNull);
     });
