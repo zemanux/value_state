@@ -1,51 +1,7 @@
-library value_state;
-
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:value_state/value_state.dart';
-
-typedef FetchOnValueEmitter<T extends Object> = FutureOr<void> Function(
-    Value<T> value);
-typedef FetchOnValueAction<T extends Object, R> = FutureOr<R> Function(
-  Value<T> value,
-  FetchOnValueEmitter<T> emitter,
-);
-
-/// Handle states (isFetching, success, error...) while an [action] is
-/// processed.
-/// [value] must return the value updated.
-/// If [errorAsValue] is `true` and [action] raise an exception then an
-/// [Value._failure] is emitted. if `false`, nothing is emitted. The exception
-/// is always rethrown by [fetchOnValue] to be handled by the caller.
-Future<R> fetchOnValue<T extends Object, R>({
-  required Value<T> Function() value,
-  required FetchOnValueEmitter<T> emitter,
-  required FetchOnValueAction<T, R> action,
-  bool errorAsValue = true,
-}) async {
-  try {
-    final currentState = value();
-    final stateRefreshing = currentState.copyWithFetching(true);
-
-    if (currentState != stateRefreshing) await emitter(stateRefreshing);
-
-    return await action(value(), emitter);
-  } catch (error, stackTrace) {
-    if (errorAsValue) {
-      await emitter(value().toFailure(
-        error,
-        stackTrace: stackTrace,
-        isFetching: false,
-      ));
-    }
-    rethrow;
-  } finally {
-    final currentState = value();
-    final stateRefreshingEnd = currentState.copyWithFetching(false);
-
-    if (currentState != stateRefreshingEnd) await emitter(stateRefreshingEnd);
-  }
-}
 
 extension ValueStateFetchExtensions<T extends Object> on Value<T> {
   Stream<Value<T>> fetch(
@@ -79,5 +35,51 @@ extension ValueStateFetchExtensions<T extends Object> on Value<T> {
     );
 
     return controller.stream;
+  }
+}
+
+@visibleForTesting
+typedef FetchOnValueEmitter<T extends Object> = FutureOr<void> Function(
+    Value<T> value);
+@visibleForTesting
+typedef FetchOnValueAction<T extends Object, R> = FutureOr<R> Function(
+  Value<T> value,
+  FetchOnValueEmitter<T> emitter,
+);
+
+/// Handle states (isFetching, success, error...) while an [action] is
+/// processed.
+/// [value] must return the value updated.
+/// If [errorAsValue] is `true` and [action] raise an exception then an
+/// [Value._failure] is emitted. if `false`, nothing is emitted. The exception
+/// is always rethrown by [fetchOnValue] to be handled by the caller.
+@visibleForTesting
+Future<R> fetchOnValue<T extends Object, R>({
+  required Value<T> Function() value,
+  required FetchOnValueEmitter<T> emitter,
+  required FetchOnValueAction<T, R> action,
+  bool errorAsValue = true,
+}) async {
+  try {
+    final currentState = value();
+    final stateRefreshing = currentState.copyWithFetching(true);
+
+    if (currentState != stateRefreshing) await emitter(stateRefreshing);
+
+    return await action(value(), emitter);
+  } catch (error, stackTrace) {
+    if (errorAsValue) {
+      await emitter(value().toFailure(
+        error,
+        stackTrace: stackTrace,
+        isFetching: false,
+      ));
+    }
+    rethrow;
+  } finally {
+    final currentState = value();
+    final stateRefreshingEnd = currentState.copyWithFetching(false);
+
+    if (currentState != stateRefreshingEnd) await emitter(stateRefreshingEnd);
   }
 }

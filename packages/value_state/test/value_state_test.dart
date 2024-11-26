@@ -5,6 +5,7 @@ import 'package:value_state/value_state.dart';
 
 void main() {
   const value = 0;
+  final valueStr = value.toString();
   const error = 'Error';
   final stackTrace = StackTrace.fromString('My StackTrace');
 
@@ -17,6 +18,8 @@ void main() {
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isFalse);
+      expect(state.dataOnSuccess, isNull);
+      expect(state.previousDataOnFailure, isNull);
       expect(state.hasData, isFalse);
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
@@ -33,6 +36,8 @@ void main() {
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isFalse);
+      expect(state.dataOnSuccess, isNull);
+      expect(state.previousDataOnFailure, isNull);
       expect(state.hasData, isFalse);
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
@@ -65,6 +70,8 @@ void main() {
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
+      expect(state.dataOnSuccess, value);
+      expect(state.previousDataOnFailure, isNull);
       expect(state.hasData, isTrue);
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
@@ -81,6 +88,8 @@ void main() {
       expect(state.isRefreshing, isTrue);
       expect(state.isFetching, isTrue);
       expect(state.isFailure, isFalse);
+      expect(state.dataOnSuccess, value);
+      expect(state.previousDataOnFailure, isNull);
       expect(state.hasData, isTrue);
       expect(state.hasError, isFalse);
       expect(state.hasStackTrace, isFalse);
@@ -117,6 +126,8 @@ void main() {
       expect(state.isRefreshing, isTrue);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
+      expect(state.dataOnSuccess, isNull);
+      expect(state.previousDataOnFailure, isNull);
       expect(state.hasData, isFalse);
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isTrue);
@@ -133,11 +144,129 @@ void main() {
       expect(state.isRefreshing, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
+      expect(state.dataOnSuccess, isNull);
+      expect(state.previousDataOnFailure, value);
       expect(state.hasData, isTrue);
       expect(state.hasError, isTrue);
       expect(state.hasStackTrace, isFalse);
       expect(state.data, value);
       expect(state.error, error);
+      expect(state.stackTrace, isNull);
+    });
+  });
+
+  group('merge', () {
+    test('merge success in initial', () {
+      final state = Value<int>.initial().merge(
+        Value.success(valueStr),
+        mapData: int.parse,
+      );
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
+
+    test('merge success in success', () {
+      final state = Value.success(value).merge(
+        Value.success(valueStr),
+        mapData: int.parse,
+      );
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
+
+    test('merge success in failure', () {
+      final state = Value<int>.failure(error).merge(
+        Value.success(valueStr, isFetching: true),
+        mapData: int.parse,
+      );
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isTrue);
+      expect(state.isRefreshing, isTrue);
+      expect(state.isSuccess, isTrue);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, isNull);
+      expect(state.stackTrace, isNull);
+    });
+
+    test('merge failure in initial', () {
+      final state = Value<int>.initial().merge(
+        Value<String>.failure(error),
+        mapData: int.parse,
+      );
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isTrue);
+      expect(state.hasData, isFalse);
+      expect(state.hasError, isTrue);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, isNull);
+      expect(state.error, error);
+      expect(state.stackTrace, isNull);
+    });
+
+    test('merge failure in success', () {
+      final state = Value.success(value).merge(
+        Value<String>.failure(error),
+        mapData: int.parse,
+      );
+
+      expect(state.isInitial, isFalse);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isTrue);
+      expect(state.hasData, isTrue);
+      expect(state.hasError, isTrue);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, value);
+      expect(state.error, error);
+      expect(state.stackTrace, isNull);
+    });
+
+    test('merge initial in failure', () {
+      final state = Value<int>.failure(error).merge(
+        Value<String>.initial(),
+        mapData: int.parse,
+      );
+
+      expect(state.isInitial, isTrue);
+      expect(state.isFetching, isFalse);
+      expect(state.isRefreshing, isFalse);
+      expect(state.isSuccess, isFalse);
+      expect(state.isFailure, isFalse);
+      expect(state.hasData, isFalse);
+      expect(state.hasError, isFalse);
+      expect(state.hasStackTrace, isFalse);
+      expect(state.data, isNull);
+      expect(state.error, isNull);
       expect(state.stackTrace, isNull);
     });
   });

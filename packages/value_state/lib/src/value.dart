@@ -1,21 +1,19 @@
-library value_state;
-
 import 'package:meta/meta.dart';
 
 /// A class that represents a value that can be in one of three states:
 /// * [ValueState.initial] - the initial state of the value.
 /// * [ValueState.success] - the state when the value is successfully fetched.
-/// * [ValueState.failure] - the state when the value is failed to fetch.
+/// * [ValueState.failure] - the state when the value has failed to fetch.
 enum ValueState {
   initial,
   success,
   failure,
 }
 
-/// A convinient class to handle different states of a value.
+/// A convenient class to handle different states of a value.
 /// The three states are enumerated in [ValueState].
 ///
-/// [T] cannot be `null`. If you need a nullable value, use an `Optinal` class
+/// [T] cannot be `null`. If you need a nullable value, use an `Optional` class
 /// pattern as type.
 final class Value<T extends Object> with _PrettyPrintMixin {
   /// Create a value in the initial state.
@@ -34,8 +32,11 @@ final class Value<T extends Object> with _PrettyPrintMixin {
           isFetching: isFetching,
         );
 
-  /// Map a value to `failure` with actual [data] if any and keep
-  /// [Value.isFetching] if [isFetching] is null.
+  /// Map a [Value] to `failure` with actual [data] if any.
+  ///
+  /// There is no `Value.failure` constructor to prevent developers from
+  /// forgetting to retain the [data] from a previous state of the
+  /// [Value].
   Value<T> toFailure(
     Object error, {
     StackTrace? stackTrace,
@@ -66,20 +67,24 @@ final class Value<T extends Object> with _PrettyPrintMixin {
     required _Failure? failure,
   }) : _failure = failure;
 
-  /// A new value state will be available. It can start fron
+  /// A new value state will be available. It can start from
   /// [ValueState.initial] or a previous [ValueState.success] or
   /// [ValueState.failure].
   final bool isFetching;
 
-  /// Get data if available, otherwise return null.
+  /// Get data if available, otherwise return `null`.
+  /// [Value] can have [data] in this [state] :
+  /// * [ValueState.success] - when the value is successfully fetched,
+  /// * [ValueState.failure] - when the value has failed to fetch with a
+  ///                          previous [Value] with [data].
   final T? data;
 
   final _Failure? _failure;
 
-  /// Get error if available, otherwise return null.
+  /// Get error if available, otherwise return `null`.
   Object? get error => _failure?.error;
 
-  /// Get stackTrace if available, otherwise return null.
+  /// Get stackTrace if available, otherwise return `null`.
   StackTrace? get stackTrace => _failure?.stackTrace;
 
   /// Get state of the value.
@@ -97,12 +102,20 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   bool get isInitial => state == ValueState.initial;
 
   /// Check if the value is in the success state.
-  /// If the generic type T is nullable, isScuccess will return true if the
-  /// data is null.
+  /// If the generic type T is nullable, [isSuccess] will return true if the
+  /// data is `null`.
   bool get isSuccess => state == ValueState.success;
 
   /// Check if the value is in the failure state.
   bool get isFailure => state == ValueState.failure;
+
+  /// Get data if the value is in the [ValueState.success] state, otherwise
+  /// return `null`.
+  T? get dataOnSuccess => isSuccess ? data : null;
+
+  /// Get data if the value is in the [ValueState.failure] state, otherwise
+  /// return `null`.
+  T? get previousDataOnFailure => isFailure ? data : null;
 
   /// Check if the value has data. It is a bit different of [isSuccess] because
   /// [ValueState.failure] can have data (from previous state).
@@ -117,7 +130,7 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   bool get hasStackTrace => _failure?.stackTrace != null;
 
   /// Check if the value is refreshing : the current state is fetching with
-  /// a previous fetch state ([ValueState.success] or [ValueState.failure]).
+  /// a previous fetched state ([ValueState.success] or [ValueState.failure]).
   bool get isRefreshing => !isInitial && isFetching;
 
   /// Copy the actual object with fetching as [isFetching].
@@ -132,10 +145,12 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   /// [Value.isFetching] and [Value.error]/[Value.stackTrace].
   Value<T> merge<F extends Object>(
     Value<F> from, {
-    T Function(Value<F> from)? mapData,
+    T Function(F from)? mapData,
   }) =>
       Value<T>._(
-        data: mapData != null ? mapData(from) : this.data,
+        data: mapData != null && from.data != null
+            ? mapData(from.data!)
+            : this.data,
         failure: from._failure,
         isFetching: from.isFetching,
       );
