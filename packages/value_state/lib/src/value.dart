@@ -13,7 +13,7 @@ enum ValueState {
 /// A convenient class to handle different states of a value.
 /// The three states are enumerated in [ValueState].
 ///
-/// [T] cannot be `null`. If you need a nullable value, use an `Optional` class
+/// [T] cannot be `null`. If you need a nullable data, use an `Optional` class
 /// pattern as type.
 final class Value<T extends Object> with _PrettyPrintMixin {
   /// Create a value in the initial state.
@@ -88,15 +88,11 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   StackTrace? get stackTrace => _failure?.stackTrace;
 
   /// Get state of the value.
-  ValueState get state {
-    if (_failure != null) {
-      return ValueState.failure;
-    } else if (data != null) {
-      return ValueState.success;
-    } else {
-      return ValueState.initial;
-    }
-  }
+  ValueState get state => switch (this) {
+        Value(hasError: true) => ValueState.failure,
+        Value(hasData: true) => ValueState.success,
+        _ => ValueState.initial,
+      };
 
   /// Check if the value is in the initial state.
   bool get isInitial => state == ValueState.initial;
