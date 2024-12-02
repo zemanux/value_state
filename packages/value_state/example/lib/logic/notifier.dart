@@ -10,9 +10,14 @@ class CounterNotifier extends ValueNotifier<Value<int>> {
 
   final _myRepository = MyRepository();
 
-  void increment() {
-    value.fetch(_myRepository.getValue).forEach((state) {
-      value = state;
-    });
+  Future<void> increment() =>
+      value.fetch(_myRepository.getValue).forEach(setNotifierValue);
+}
+
+/// Add this extension on your Flutter project to make it easier to use.
+extension ValueNotifierExtensions<T extends Object> on ValueNotifier {
+  @protected
+  void setNotifierValue(Value<T> newValue) {
+    value = newValue;
   }
 }

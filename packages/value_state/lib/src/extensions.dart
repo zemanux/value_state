@@ -6,8 +6,8 @@ extension ValueExtensions<T extends Object> on Value<T> {
   /// this value.
   /// * [initial] is called if this value is [Value.isInitial],
   /// * [success] is called if this value is [Value.isSuccess], [Value.data] is
-  ///   then available as parameter,
-  /// * [data] is called if this value has [Value.data] available as parameter,
+  ///   then available,
+  /// * [withData] is called if this value has [Value.data] available,
   /// * [failure] is called if this value is [Value.isFailure], and
   ///   [Value.error] is then available as parameter,
   /// * [orElse] is called if none of the above match or not specified. This
@@ -15,7 +15,7 @@ extension ValueExtensions<T extends Object> on Value<T> {
   R map<R>({
     R Function()? initial,
     R Function(T data)? success,
-    R Function(T data)? data,
+    R Function(T data)? withData,
     R Function(Object error)? failure,
     required R Function() orElse,
   }) =>
@@ -23,9 +23,8 @@ extension ValueExtensions<T extends Object> on Value<T> {
         Value<T>(isInitial: true) when initial != null => initial(),
         Value<T>(:final dataOnSuccess?) when success != null =>
           success(dataOnSuccess),
-        Value<T>(data: final dataOfThis?) when data != null => data(dataOfThis),
-        Value<T>(isFailure: true, :final error?) when failure != null =>
-          failure(error),
+        Value<T>(:final data?) when withData != null => withData(data),
+        Value<T>(:final error?) when failure != null => failure(error),
         _ => orElse(),
       };
 
@@ -51,7 +50,7 @@ extension ValueExtensions<T extends Object> on Value<T> {
       map<R?>(
         initial: initial,
         success: success,
-        data: data,
+        withData: data,
         failure: failure,
         orElse: orElse ?? () => null,
       );

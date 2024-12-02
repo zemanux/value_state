@@ -29,16 +29,18 @@ class CounterStream {
 
   Future<void> incrementValue() async {
     await fetchOnValue<int, void>(
-        value: () => state,
-        emitter: (state) {
-          this.state = state;
-          _resultStreamController.add(this.state);
-        },
-        action: (state, emitter) async {
-          final result = await _getMyValueFromRepository();
+      value: () => state,
+      emitter: (state) {
+        this.state = state;
+        _resultStreamController.add(this.state);
+      },
+      action: (state, emitter) async {
+        final result = await _getMyValueFromRepository();
 
-          emitter(Value.success(result));
-        }).onError((error, stackTrace) {
+        emitter(Value.success(result));
+      },
+      lastValueOnError: false,
+    ).onError((error, stackTrace) {
       errorsRaisedCount++;
     });
   }

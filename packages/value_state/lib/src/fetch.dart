@@ -8,10 +8,32 @@ extension ValueStateFetchExtensions<T extends Object> on Value<T> {
     Future<T> Function() action, {
     bool guarded = true,
   }) {
-    return fetchStream(action().asStream(), guarded: guarded);
+    return fetchStream(
+      () => action().asStream().map(Value.success),
+      guarded: guarded,
+    );
   }
 
-  Stream<Value<T>> fetchStream(Stream<T> stream, {bool guarded = true}) {
+  /// Handle states (isFetching, success, error...) before and after the
+  /// [stream] is processed :
+  /// * Before the [stream] is processed, the value is emitted with
+  ///   [Value.isFetching] set to true.
+  /// * After the [stream] is processed, the last value is emitted with
+  ///   [Value.isFetching] set to false.
+  /// * If an exception is raised, an error is emitted based on the
+  ///   [lastValueOnError] setting :
+  ///    * If [lastValueOnError] is true, the most recent value emitted is used
+  ///     to construct the error.
+  ///    * If [lastValueOnError] is false, the value present before the stream
+  ///     processing begins is used instead.
+  ///
+  /// If [guarded] is true, the error is not rethrown in the stream. If
+  /// [guarded] is false, the error is rethrown in the stream.
+  Stream<Value<T>> fetchStream(
+    Stream<Value<T>> Function() stream, {
+    bool guarded = true,
+    bool lastValueOnError = false,
+  }) {
     final controller = StreamController<Value<T>>();
     var lastValue = this;
 
@@ -21,18 +43,15 @@ extension ValueStateFetchExtensions<T extends Object> on Value<T> {
         lastValue = value;
         controller.add(value);
       },
-      action: (value, emit) => stream.forEach(
-        (data) => emit(Value.success(data)),
-      ),
+      action: (value, emit) => stream().forEach(emit),
+      lastValueOnError: lastValueOnError,
     ).onError((error, stackTrace) {
       if (error != null && !guarded) {
         controller.addError(error, stackTrace);
       }
-    }).whenComplete(
-      () {
-        controller.close();
-      },
-    );
+    }).whenComplete(() {
+      controller.close();
+    });
 
     return controller.stream;
   }
@@ -47,39 +66,36 @@ typedef FetchOnValueAction<T extends Object, R> = FutureOr<R> Function(
   FetchOnValueEmitter<T> emitter,
 );
 
-/// Handle states (isFetching, success, error...) while an [action] is
-/// processed.
-/// [value] must return the value updated.
-/// If [errorAsValue] is `true` and [action] raise an exception then an
-/// [Value._failure] is emitted. if `false`, nothing is emitted. The exception
-/// is always rethrown by [fetchOnValue] to be handled by the caller.
 @visibleForTesting
 Future<R> fetchOnValue<T extends Object, R>({
   required Value<T> Function() value,
   required FetchOnValueEmitter<T> emitter,
   required FetchOnValueAction<T, R> action,
-  bool errorAsValue = true,
+  required bool lastValueOnError,
 }) async {
-  try {
-    final currentState = value();
-    final stateRefreshing = currentState.copyWithFetching(true);
+  final valueBeforeFetch = value();
 
-    if (currentState != stateRefreshing) await emitter(stateRefreshing);
+  try {
+    final currentValue = valueBeforeFetch;
+    final stateRefreshing = currentValue.copyWithFetching(true);
+
+    if (currentValue != stateRefreshing) await emitter(stateRefreshing);
 
     return await action(value(), emitter);
   } catch (error, stackTrace) {
-    if (errorAsValue) {
-      await emitter(value().toFailure(
-        error,
-        stackTrace: stackTrace,
-        isFetching: false,
-      ));
-    }
+    final currentValue = lastValueOnError ? value() : valueBeforeFetch;
+
+    await emitter(currentValue.toFailure(
+      error,
+      stackTrace: stackTrace,
+      isFetching: false,
+    ));
+
     rethrow;
   } finally {
-    final currentState = value();
-    final stateRefreshingEnd = currentState.copyWithFetching(false);
+    final currentValue = value();
+    final stateRefreshingEnd = currentValue.copyWithFetching(false);
 
-    if (currentState != stateRefreshingEnd) await emitter(stateRefreshingEnd);
+    if (currentValue != stateRefreshingEnd) await emitter(stateRefreshingEnd);
   }
 }
