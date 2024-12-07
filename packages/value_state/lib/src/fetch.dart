@@ -77,9 +77,9 @@ Future<R> fetchOnValue<T extends Object, R>({
 
   try {
     final currentValue = valueBeforeFetch;
-    final stateRefreshing = currentValue.copyWithFetching(true);
+    final stateFetching = currentValue.copyWithFetching(true);
 
-    if (currentValue != stateRefreshing) await emitter(stateRefreshing);
+    if (currentValue != stateFetching) await emitter(stateFetching);
 
     return await action(value(), emitter);
   } catch (error, stackTrace) {
@@ -94,8 +94,8 @@ Future<R> fetchOnValue<T extends Object, R>({
     rethrow;
   } finally {
     final currentValue = value();
-    final stateRefreshingEnd = currentValue.copyWithFetching(false);
+    final stateFetchingEnd = currentValue.copyWithFetching(false);
 
-    if (currentValue != stateRefreshingEnd) await emitter(stateRefreshingEnd);
+    if (currentValue != stateFetchingEnd) await emitter(stateFetchingEnd);
   }
 }

@@ -15,7 +15,8 @@ void main() {
 
       expect(state.isInitial, isTrue);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isTrue);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isFalse);
       expect(state.dataOnSuccess, isNull);
@@ -33,7 +34,8 @@ void main() {
 
       expect(state.isInitial, isTrue);
       expect(state.isFetching, isTrue);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isTrue);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isFalse);
       expect(state.dataOnSuccess, isNull);
@@ -51,7 +53,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.hasData, isTrue);
@@ -67,7 +70,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.dataOnSuccess, value);
@@ -85,7 +89,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isTrue);
-      expect(state.isRefreshing, isTrue);
+      expect(state.isRefetching, isTrue);
+      expect(state.isLoading, isTrue);
       expect(state.isFetching, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.dataOnSuccess, value);
@@ -103,7 +108,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
       expect(state.hasData, isFalse);
@@ -123,7 +129,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isTrue);
-      expect(state.isRefreshing, isTrue);
+      expect(state.isRefetching, isTrue);
+      expect(state.isLoading, isTrue);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
       expect(state.dataOnSuccess, isNull);
@@ -141,7 +148,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
       expect(state.dataOnSuccess, isNull);
@@ -164,7 +172,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.hasData, isTrue);
@@ -183,7 +192,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.hasData, isTrue);
@@ -202,7 +212,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isTrue);
-      expect(state.isRefreshing, isTrue);
+      expect(state.isRefetching, isTrue);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.hasData, isTrue);
@@ -221,7 +232,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
       expect(state.hasData, isFalse);
@@ -240,7 +252,8 @@ void main() {
 
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isTrue);
       expect(state.hasData, isTrue);
@@ -259,7 +272,7 @@ void main() {
 
       expect(state.isInitial, isTrue);
       expect(state.isFetching, isFalse);
-      expect(state.isRefreshing, isFalse);
+      expect(state.isRefetching, isFalse);
       expect(state.isSuccess, isFalse);
       expect(state.isFailure, isFalse);
       expect(state.hasData, isFalse);

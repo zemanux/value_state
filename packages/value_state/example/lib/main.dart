@@ -34,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This example, show how to handle different states with refreshing
+    // This example, show how to handle different states with refetching
     // problematic. In this case, when an error is raised after a value has
     // been successfully fetched, we can see the error and the last value
     // fetched both displayed.
@@ -44,11 +44,11 @@ class _MyHomePageState extends State<MyHomePage> {
         if (state.isInitial) return const Loader();
 
         return FormattedColumn(children: [
-          RefreshLoader(isLoading: state.isRefreshing),
+          RefreshLoader(isLoading: state.isRefetching),
           if (state case Value(:final error?)) DefaultError(error: error),
           if (state case Value(:final data?)) Text('Counter value : $data'),
           ActionButton(
-            onPressed: state.isRefreshing ? null : _notifier.increment,
+            onPressed: state.isRefetching ? null : _notifier.increment,
           ),
         ]);
       },

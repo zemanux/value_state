@@ -125,9 +125,13 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   /// [ValueState.failure]).
   bool get hasStackTrace => _failure?.stackTrace != null;
 
-  /// Check if the value is refreshing : the current state is fetching with
+  /// Check if the value is fecthing again : the current state is fetching with
   /// a previous fetched state ([ValueState.success] or [ValueState.failure]).
-  bool get isRefreshing => !isInitial && isFetching;
+  bool get isRefetching => !isInitial && isFetching;
+
+  /// Check if the value is loading : the current state is [ValueState.initial]
+  /// or [isFetching].
+  bool get isLoading => isInitial || isFetching;
 
   /// Copy the actual object with fetching as [isFetching].
   Value<T> copyWithFetching(bool isFetching) => Value._(
