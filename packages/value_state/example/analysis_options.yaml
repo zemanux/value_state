@@ -1,5 +1,13 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  plugins:
+    - custom_lint
+
+custom_lint:
+  rules:
+    - missing_provider_scope: false
+
 linter:
   rules:
     - prefer_const_constructors

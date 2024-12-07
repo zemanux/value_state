@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:value_state/value_state.dart';
 
-import 'logic/counter_cubit.dart';
+import 'logic/counter_notifier.dart';
 import 'widgets/action_button.dart';
 import 'widgets/app_root.dart';
 import 'widgets/default_error.dart';
@@ -11,7 +11,9 @@ import 'widgets/loader.dart';
 
 // coverage:ignore-start
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(child: MyApp()),
+  );
 }
 // coverage:ignore-end
 
@@ -21,10 +23,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CounterCubit(),
-      child: const AppRoot(child: MyHomePage()),
-    );
+    return const AppRoot(child: MyHomePage());
   }
 }
 
@@ -37,8 +36,12 @@ class MyHomePage extends StatelessWidget {
     // problematic. In this case, when an error is raised after a value has
     // been successfully fetched, we can see the error and the last value
     // fetched both displayed.
-    return BlocBuilder<CounterCubit, Value<int>>(
-      builder: (context, state) {
+    // All fetch/refresh logic is handled by riverpod, this example show how to
+    // standardize the UI with the use of Value.
+    return Consumer(
+      builder: (context, ref, _) {
+        final state = ref.watch(counterProvider).mapToValue();
+
         if (state.isInitial) return const Loader();
 
         return FormattedColumn(children: [
@@ -48,7 +51,7 @@ class MyHomePage extends StatelessWidget {
           ActionButton(
             onPressed: state.isRefreshing
                 ? null
-                : context.read<CounterCubit>().increment,
+                : () => ref.invalidate(counterProvider),
           ),
         ]);
       },

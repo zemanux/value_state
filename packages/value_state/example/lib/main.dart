@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:value_state/value_state.dart';
 
-import 'logic/notifier.dart';
+import 'logic/counter_value_notifier.dart';
 import 'widgets/action_button.dart';
 import 'widgets/app_root.dart';
 import 'widgets/default_error.dart';
