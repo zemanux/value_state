@@ -30,28 +30,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _notifier = CounterNotifier();
+  final _notifier = CounterNotifier()..increment();
 
   @override
-  Widget build(BuildContext context) {
-    // This example, show how to handle different states with refetching
-    // problematic. In this case, when an error is raised after a value has
-    // been successfully fetched, we can see the error and the last value
-    // fetched both displayed.
-    return ValueListenableBuilder(
-      valueListenable: _notifier,
-      builder: (context, state, _) {
-        if (state.isInitial) return const Loader();
+  Widget build(BuildContext context) =>
+      // This example, show how to handle different states with refetching
+      // problematic. In this case, when an error is raised after a value has
+      // been successfully fetched, we can see the error and the last value
+      // fetched both displayed.
+      ValueListenableBuilder(
+        valueListenable: _notifier,
+        builder: (context, state, _) {
+          if (state.isInitial) return const Loader();
 
-        return FormattedColumn(children: [
-          RefreshLoader(isLoading: state.isRefetching),
-          if (state case Value(:final error?)) DefaultError(error: error),
-          if (state case Value(:final data?)) Text('Counter value : $data'),
-          ActionButton(
-            onPressed: state.isRefetching ? null : _notifier.increment,
-          ),
-        ]);
-      },
-    );
-  }
+          return FormattedColumn(children: [
+            RefreshLoader(isLoading: state.isRefetching),
+            if (state case Value(:final error?)) DefaultError(error: error),
+            if (state case Value(:final data?)) Text('Counter value : $data'),
+            ActionButton(
+              onPressed: state.isRefetching ? null : _notifier.increment,
+            ),
+          ]);
+        },
+      );
 }

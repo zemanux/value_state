@@ -4,9 +4,7 @@ import 'package:value_state/value_state.dart';
 import 'repository.dart';
 
 class CounterNotifier extends ValueNotifier<Value<int>> {
-  CounterNotifier() : super(const Value.initial()) {
-    increment();
-  }
+  CounterNotifier() : super(const Value.initial());
 
   final _myRepository = MyRepository();
 

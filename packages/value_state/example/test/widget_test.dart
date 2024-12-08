@@ -22,7 +22,7 @@ void main() {
       // Build our app and trigger a frame.
       runZonedGuarded<void>(
         () async {
-          await tester.pumpWidget(const MyApp());
+          await tester.pumpWidget(const MyCubitApp());
           await tester.pumpAndSettle();
 
           // Verify that our counter starts at 0.

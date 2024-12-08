@@ -12,6 +12,8 @@ MyRepository myRepository(Ref ref) => MyRepository();
 @riverpod
 Future<int> counter(Ref ref) => ref.watch(myRepositoryProvider).getValue();
 
+/// Simple extension to map [AsyncValue] to [Value] that you can include in
+/// your project.
 extension AsyncValueX<T extends Object> on AsyncValue<T> {
   Value<T> mapToValue() => map(
         data: (data) => Value<T>.success(data.value, isFetching: isLoading),
