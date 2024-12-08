@@ -213,7 +213,7 @@ void main() {
       expect(state.isInitial, isFalse);
       expect(state.isFetching, isTrue);
       expect(state.isRefetching, isTrue);
-      expect(state.isLoading, isFalse);
+      expect(state.isLoading, isTrue);
       expect(state.isSuccess, isTrue);
       expect(state.isFailure, isFalse);
       expect(state.hasData, isTrue);

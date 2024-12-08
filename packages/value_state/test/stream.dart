@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:stream_transform/stream_transform.dart';
 import 'package:test/expect.dart';
+import 'package:value_state/src/fetch_on_value.dart';
 import 'package:value_state/value_state.dart';
 
 class CounterStream {

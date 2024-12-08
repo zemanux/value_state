@@ -15,7 +15,7 @@ enum ValueState {
 ///
 /// [T] cannot be `null`. If you need a nullable data, use an `Optional` class
 /// pattern as type.
-final class Value<T extends Object> with _PrettyPrintMixin {
+final class Value<T extends Object> {
   /// Create a value in the initial state.
   const Value.initial({bool isFetching = false})
       : this._(
@@ -75,7 +75,7 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   /// Get data if available, otherwise return `null`.
   /// [Value] can have [data] in this [state] :
   /// * [ValueState.success] - when the value is successfully fetched,
-  /// * [ValueState.failure] - when the value has failed to fetch with a
+  /// * [ValueState.failure] - when the value has failed to fetch and a
   ///                          previous [Value] with [data].
   final T? data;
 
@@ -168,15 +168,24 @@ final class Value<T extends Object> with _PrettyPrintMixin {
   int get hashCode => Object.hash(data, _failure, isFetching);
 
   @override
+  String toString() {
+    final prettyPrint = _attributes.entries
+        .where((entry) => entry.value?.toString().isNotEmpty ?? false)
+        .map((entry) => '${entry.key}: ${entry.value}')
+        .join(', ');
+
+    return '$runtimeType($prettyPrint)';
+  }
+
   Map<String, dynamic> get _attributes => {
         'state': state,
         'isFetching': isFetching,
-        if (data != null) 'data': data,
+        if (!isInitial) 'data': data,
         ...?_failure?._attributes,
       };
 }
 
-final class _Failure with _PrettyPrintMixin {
+final class _Failure {
   const _Failure(this.error, {this.stackTrace});
 
   final Object error;
@@ -193,24 +202,8 @@ final class _Failure with _PrettyPrintMixin {
   @override
   int get hashCode => Object.hash(error, stackTrace);
 
-  @override
   Map<String, dynamic> get _attributes => {
         'error': error,
         'stackTrace': stackTrace,
       };
-}
-
-mixin _PrettyPrintMixin {
-  Map<String, dynamic> get _attributes;
-
-  @override
-  String toString() {
-    return '$runtimeType($prettyPrint)';
-  }
-
-  String get prettyPrint => _attributes.entries
-      .where(
-          (entry) => entry.value != null && entry.value.toString().isNotEmpty)
-      .map((entry) => '${entry.key}: ${entry.value}')
-      .join(', ');
 }
