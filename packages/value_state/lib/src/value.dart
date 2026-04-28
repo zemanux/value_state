@@ -145,15 +145,27 @@ final class Value<T extends Object> {
   /// and [Value.error]/[Value.stackTrace] attributes.
   Value<T> merge<F extends Object>(
     Value<F> from, {
-    Value<T> Function(F from)? mapData,
-  }) =>
-      mapData != null && from.data != null
-          ? mapData(from.data!).copyWithFetching(from.isFetching)
-          : Value<T>._(
-              data: this.data,
-              failure: from._failure,
-              isFetching: from.isFetching,
-            );
+    @Deprecated('Use map instead') Value<T> Function(F from)? mapData,
+    Value<T> Function(F from)? map,
+  }) {
+    assert(
+      mapData == null || map == null,
+      'Only one of mapData or map can be provided',
+    );
+    return switch (from) {
+      Value(:final data?) when mapData != null =>
+        mapData(data).copyWithFetching(from.isFetching),
+      Value(:final data?, hasError: true) when map != null => Value._(
+          data: map(data).data,
+          failure: from._failure,
+          isFetching: from.isFetching,
+        ),
+      Value(:final data?) when map != null =>
+        map(data).copyWithFetching(from.isFetching),
+      _ => Value._(
+          data: data, isFetching: from.isFetching, failure: from._failure),
+    };
+  }
 
   @override
   bool operator ==(Object other) =>

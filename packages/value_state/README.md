@@ -67,7 +67,7 @@ final result = switch(valueInitial) {
 ```dart
 const valueInt = Value.success(0);
 const valueStr = Value.success('toto');
-final newValue = valueInt.merge(valueStr, mapData: (value) => value.length);
+final newValue = valueInt.merge(valueStr, map: (value) => Value.success(value.length));
 print('$newValue'); // Value<int>(state: ValueState.success, isFetching: false, data: 4)
 ```
 
