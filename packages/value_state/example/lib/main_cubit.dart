@@ -41,16 +41,18 @@ class MyHomePage extends StatelessWidget {
         builder: (context, state) {
           if (state.isInitial) return const Loader();
 
-          return FormattedColumn(children: [
-            RefreshLoader(isLoading: state.isRefetching),
-            if (state case Value(:final error?)) DefaultError(error: error),
-            if (state case Value(:final data?)) Text('Counter value : $data'),
-            ActionButton(
-              onPressed: state.isRefetching
-                  ? null
-                  : context.read<CounterCubit>().increment,
-            ),
-          ]);
+          return FormattedColumn(
+            children: [
+              RefreshLoader(isLoading: state.isRefetching),
+              if (state case Value(:final error?)) DefaultError(error: error),
+              if (state case Value(:final data?)) Text('Counter value : $data'),
+              ActionButton(
+                onPressed: state.isRefetching
+                    ? null
+                    : context.read<CounterCubit>().increment,
+              ),
+            ],
+          );
         },
       );
 }

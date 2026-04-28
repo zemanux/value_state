@@ -1,3 +1,7 @@
+## 2.1.0
+
+ - **FEAT**: added map parameter to .merge.
+
 ## 2.0.1
 
  - **DOCS**: added pattern matching and migration.

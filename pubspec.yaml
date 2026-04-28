@@ -3,4 +3,4 @@ name: value_state_root
 environment:
   sdk: ^3.4.0
 dev_dependencies:
-  melos: ^6.3.2
+  melos: ^7.5.1

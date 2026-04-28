@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-04-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`value_state` - `v2.1.0`](#value_state---v210)
+
+---
+
+#### `value_state` - `v2.1.0`
+
+ - **FEAT**: added map parameter to .merge.
+
+
 ## 2025-03-05
 
 ### Changes
